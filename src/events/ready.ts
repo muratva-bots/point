@@ -43,7 +43,7 @@ const Ready: Point.IEvent<Events.ClientReady> = {
                 $or: [{ 'staffTakes.user': unTaggedMembers }, { 'taggeds.user': { $in: unTaggedMembers } }],
             },
             {
-                $pop: { 'staffTakes.user': { $in: unTaggedMembers }, 'taggeds.user': { $in: unTaggedMembers } },
+                $pull: { 'staffTakes.user': { $in: unTaggedMembers }, 'taggeds.user': { $in: unTaggedMembers } },
             },
         );
 

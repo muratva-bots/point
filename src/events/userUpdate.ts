@@ -16,7 +16,7 @@ const UserUpdate: Point.IEvent<Events.UserUpdate> = {
                     guild: client.config.GUILD_ID,
                     $or: [{ 'staffTakes.user': newUser.id }, { taggeds: { $in: [newUser.id] } }],
                 },
-                { $pop: { staffTakes: { user: newUser.id }, taggeds: newUser.id } },
+                { $pull: { staffTakes: { user: newUser.id }, taggeds: newUser.id } },
                 { upsert: true },
             );
 

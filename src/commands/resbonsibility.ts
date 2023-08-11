@@ -22,15 +22,22 @@ const Command: Point.ICommand = {
             return;
         }
 
-        const buttonRow = new ActionRowBuilder<ButtonBuilder>({
-            components: tasks.map(t => (
-                new ButtonBuilder({
-                    custom_id: t.role,
-                    label: message.guild.roles.cache.get(t.role).name,
-                    style: ButtonStyle.Primary,
-                })
-            ))
-        });
+        const rows: ActionRowBuilder<ButtonBuilder>[] = [];
+        const tasksChunkArray = client.utils.chunkArray(tasks, 25);
+        for (let i = 0; tasksChunkArray.length > i; i++) {
+            const t = tasksChunkArray[i];
+            rows.push(
+                new ActionRowBuilder<ButtonBuilder>({
+                    components: [
+                        new ButtonBuilder({
+                            custom_id: t.role,
+                            label: message.guild.roles.cache.get(t.role).name,
+                            style: ButtonStyle.Primary,
+                        })
+                    ],
+                }),
+            );
+        }
 
         guildData.responsibilityChannel = message.channelId;
         await GuildModel.updateOne(
@@ -41,7 +48,7 @@ const Command: Point.ICommand = {
 
         message.channel.send({
             content: "Aşağıdaki butonlardan kendinize uygun olan sorumluluğu seçin! Sahip olduğunuz sorumluluk varsa eğer; butona tekrar basarsanız sorumluluk üzerinizden çekilir.",
-            components: [buttonRow],
+            components: rows,
         });
     },
 };

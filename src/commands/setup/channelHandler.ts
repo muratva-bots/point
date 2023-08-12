@@ -1,4 +1,5 @@
 import { GuildModel, PointClass } from '@/models';
+import { Client } from '@/structures';
 import {
     ActionRowBuilder,
     ButtonBuilder,
@@ -12,7 +13,6 @@ import {
     channelMention,
     inlineCode,
 } from 'discord.js';
-import { Client } from '@/structures';
 import mainHandler from './mainHandler';
 
 export interface IChannelOption {

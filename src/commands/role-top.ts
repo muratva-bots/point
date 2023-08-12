@@ -1,14 +1,14 @@
 import { StaffModel } from '@/models';
 import {
-    ButtonInteraction,
-    ButtonStyle,
     ActionRowBuilder,
     ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    ComponentType,
     EmbedBuilder,
     bold,
     inlineCode,
     userMention,
-    ComponentType,
 } from 'discord.js';
 
 const Command: Point.ICommand = {
@@ -20,7 +20,7 @@ const Command: Point.ICommand = {
     execute: async ({ client, message, args, guildData }) => {
         const role = message.mentions.roles.first() || message.guild.roles.cache.get(args[0]);
         if (!role) {
-            client.utils.sendTimedMessage(message, 'Geçerli bir kullanıcı belirt.');
+            client.utils.sendTimedMessage(message, 'Geçerli bir rol belirt.');
             return;
         }
 
@@ -44,7 +44,7 @@ const Command: Point.ICommand = {
         );
 
         const question = await message.channel.send({
-            embeds: [embed],
+            embeds: [embed.setDescription(mappedDatas.slice(page === 1 ? 0 : page * 10 - 10, page * 10).join('\n'))],
             components: [client.utils.paginationButtons(page, totalData)],
         });
 
@@ -66,7 +66,7 @@ const Command: Point.ICommand = {
             if (i.customId === 'last') page = totalData;
 
             question.edit({
-                embeds: [embed.setDescription(mappedDatas.slice(page === 1 ? 0 : page * 10 - 10, page * 10).join(''))],
+                embeds: [embed.setDescription(mappedDatas.slice(page === 1 ? 0 : page * 10 - 10, page * 10).join('\n'))],
                 components: [client.utils.paginationButtons(page, totalData)],
             });
         });

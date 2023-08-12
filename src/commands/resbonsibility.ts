@@ -1,15 +1,15 @@
 import { GuildModel } from '@/models';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Team } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 const Command: Point.ICommand = {
     usages: ['sorumluluk'],
-    checkPermission: ({ client, message }) => {
-        const ownerID =
-            client.application.owner instanceof Team
-                ? (client.application.owner as Team).ownerId
-                : client.application.owner.id;
-        return ownerID === message.author.id;
-    },
+    // checkPermission: ({ client, message }) => {
+    //     const ownerID =
+    //         client.application.owner instanceof Team
+    //             ? (client.application.owner as Team).ownerId
+    //             : client.application.owner.id;
+    //     return ownerID === message.author.id;
+    // },
     execute: async ({ client, message, guildData }) => {
         const tasks = (guildData.tasks || []).filter((t) => t.isGeneral || message.guild.roles.cache.has(t.role));
         if (!tasks.length) {
@@ -26,7 +26,7 @@ const Command: Point.ICommand = {
                     components: [
                         new ButtonBuilder({
                             custom_id: t.role,
-                            label: message.guild.roles.cache.get(t.role).name,
+                            label: message.guild.roles.cache.get(t.role)?.name,
                             style: ButtonStyle.Primary,
                         }),
                     ],

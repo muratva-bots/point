@@ -12,13 +12,12 @@ import {
 } from 'discord.js';
 
 const Command: Point.ICommand = {
-    usages: ['taglılarım', 'taglılar'],
+    usages: ['taglılarım', 'taglılar', "taggeds"],
     checkPermission: ({ message, guildData }) => {
         const minStaffRole = message.guild.roles.cache.get(guildData.minStaffRole);
         return minStaffRole && message.member.roles.highest.position >= minStaffRole.position;
     },
     execute: async ({ client, message, args, guildData }) => {
-        const minStaffRole = message.guild.roles.cache.get(guildData.minStaffRole);
 
         const member =
             (await client.utils.getMember(message.guild, args[0])) ||

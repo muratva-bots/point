@@ -3,16 +3,16 @@ import { StaffModel } from '@/models';
 import {
     ActionRowBuilder,
     ButtonBuilder,
+    ButtonInteraction,
     ButtonStyle,
+    ComponentType,
     EmbedBuilder,
     EmbedField,
+    TextChannel,
     inlineCode,
     roleMention,
-    userMention,
     time,
-    ButtonInteraction,
-    ComponentType,
-    TextChannel,
+    userMention,
 } from 'discord.js';
 
 const titles = {
@@ -42,7 +42,7 @@ const Command: Point.ICommand = {
         const member =
             (await client.utils.getMember(message.guild, args[0])) ||
             (message.reference ? (await message.fetchReference()).member : undefined);
-        if (member) {
+        if (!member) {
             client.utils.sendTimedMessage(message, 'Geçerli bir kullanıcı belirt!');
             return;
         }

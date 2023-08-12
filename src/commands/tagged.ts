@@ -20,7 +20,7 @@ const Command: Point.ICommand = {
         const member =
             (await client.utils.getMember(message.guild, args[0])) ||
             (message.reference ? (await message.fetchReference()).member : undefined);
-        if (member) {
+        if (!member) {
             client.utils.sendTimedMessage(message, 'Geçerli bir kullanıcı belirt!');
             return;
         }

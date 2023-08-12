@@ -1,5 +1,5 @@
 import { TaskFlags } from '@/enums';
-import { prop, getModelForClass, modelOptions } from '@typegoose/typegoose';
+import { getModelForClass, modelOptions, prop } from '@typegoose/typegoose';
 
 export interface IResponsibilityChannel {
     id: string;

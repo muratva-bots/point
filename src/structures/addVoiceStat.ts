@@ -21,7 +21,7 @@ export async function addVoiceStat(
     let point = minutes * guildData.sleepPoint;
     let key = 'sleepPoints';
 
-    const pointChannel = guildData.responsibilityChannels.find(
+    const pointChannel = (guildData.responsibilityChannels || []).find(
         (c) =>
             (channel.id === c.id || channel.parentId === c.id) &&
             member.roles.cache.has(c.role) &&

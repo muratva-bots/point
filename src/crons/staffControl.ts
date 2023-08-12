@@ -8,7 +8,7 @@ const ONE_DAY = 1000 * 60 * 60 * 24;
 export function staffControl(client: Client, guild: Guild) {
     schedule('0 0 0 * * 7', async () => {
         const guildData = client.servers.get(guild.id);
-        if (!guildData || !guildData.ranks?.length) return;
+        if (!guildData || !(guildData.ranks || []).length) return;
 
         const minStaffRole = guild.roles.cache.find((r) => r.name === guildData.minStaffRole);
         if (!minStaffRole) return;

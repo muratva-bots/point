@@ -30,7 +30,7 @@ const Command: Point.ICommand = {
             return;
         }
 
-        if (!guildData.tags?.some((t) => member.user.displayName.toLowerCase().includes(t.toLowerCase()))) {
+        if (!(guildData.tags || []).some((t) => member.user.displayName.toLowerCase().includes(t.toLowerCase()))) {
             client.utils.sendTimedMessage(message, 'Kullanıcı taga sahip değil.');
             return;
         }

@@ -1,4 +1,4 @@
-import { StaffTakeFlags } from '@/enums';
+import { StaffTakeFlags, TaskFlags } from '@/enums';
 import { StaffModel } from '@/models';
 import {
     ActionRowBuilder,
@@ -255,11 +255,19 @@ const Command: Point.ICommand = {
                 return;
             }
 
-            await StaffModel.updateOne(
+            const authorDocument = await StaffModel.findOneAndUpdate(
                 { id: message.author.id, guild: message.guildId },
                 { $push: { staffTakes: { user: member.id, time: now, role: sortedRanks[0].role } } },
                 { upsert: true },
             );
+
+            const task = authorDocument.tasks.find((t) => t.type === TaskFlags.Staff);
+            if (task) {
+                task.currentCount = task.currentCount + 1;
+                if (task.currentCount >= task.count) task.currentCount = task.count;
+                task.completed = task.currentCount >= task.count;
+                authorDocument.save();
+            }
 
             await StaffModel.updateOne(
                 { id: member.id, guild: message.guildId },

@@ -1,3 +1,4 @@
+import { TaskFlags } from '@/enums';
 import { IRank, PointClass, StaffClass, StaffModel } from '@/models';
 import { Client } from '@/structures';
 import {
@@ -37,13 +38,13 @@ const Command: Point.ICommand = {
             return;
         }
 
-        const rankIndex = guildData.ranks?.findIndex((r) => member.roles.cache.has(r.role));
-        if (rankIndex === guildData.ranks?.length - 1) {
+        const rankIndex = (guildData.ranks || []).findIndex((r) => member.roles.cache.has(r.role));
+        if (rankIndex === (guildData.ranks || []).length - 1) {
             client.utils.sendTimedMessage(message, 'Yükselecek yetkin bulunmuyor, yönetime alınmayı bekle.');
             return;
         }
 
-        const rank = guildData.ranks?.find((r) => member.roles.cache.has(r.role));
+        const rank = (guildData.ranks || []).find((r) => member.roles.cache.has(r.role));
         const embed = new EmbedBuilder({
             color: client.utils.getRandomColor(),
             author: {
@@ -97,7 +98,7 @@ const Command: Point.ICommand = {
                         t.currentCount,
                         t.count,
                     )} (${inlineCode(
-                        task.isVoice
+                        task.type === TaskFlags.Voice
                             ? `${client.utils.numberToString(t.currentCount)}/${client.utils.numberToString(t.count)}`
                             : `${t.currentCount}/${t.count}`,
                     )})`;

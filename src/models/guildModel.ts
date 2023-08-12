@@ -1,3 +1,4 @@
+import { TaskFlags } from '@/enums';
 import { prop, getModelForClass, modelOptions } from '@typegoose/typegoose';
 
 export interface IResponsibilityChannel {
@@ -11,9 +12,8 @@ export interface IGuildTask {
     channel: string;
     title: string;
     count: number;
+    type: TaskFlags;
     isGeneral: boolean;
-    isInvite: boolean;
-    isVoice: boolean;
     role?: string;
 }
 

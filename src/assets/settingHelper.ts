@@ -33,6 +33,7 @@ export const SETTINGS = [
         name: 'Yetki Rolleri',
         description: 'Yetkililerin kasacağı puanlarla alacağı roller.',
         type: 'ranks',
+        value: 'ranks',
     },
     {
         name: 'Mesaj Puanı',
@@ -53,16 +54,18 @@ export const SETTINGS = [
     {
         name: 'Görev',
         description: 'Yetkililerin yapacağı görevler.',
-        type: 'tasks'
+        type: 'tasks',
+        value: 'tasks',
     },
     {
         name: 'Kanala Özel Puan',
         description: 'Belirtilen kanala ve role sahip birinin alacağı puan.',
-        type: 'responsibilitys'
+        type: 'responsibilitys',
+        value: 'responsibilitys',
     },
     {
         name: 'Davet Puanı',
-        value: 'messagePoint',
+        value: 'invitePoint',
         description: 'Davet yaptığında alacağı puan.',
         type: 'string',
         isMultiple: false,
@@ -90,7 +93,7 @@ export const SETTINGS = [
         description: 'AFK odasını belirtin.',
         type: 'channel',
         isParent: false,
-        isVoice: false,
+        isVoice: true,
     },
     {
         name: 'Public Kategorisi',
@@ -98,13 +101,6 @@ export const SETTINGS = [
         description: 'Public kategorisini belirtin.',
         type: 'channel',
         isParent: true,
-        isVoice: false,
-    },
-    {
-        name: 'Public Kategorisi',
-        value: 'publicCategory',
-        type: 'channel',
-        isParent: false,
         isVoice: false,
     },
     {
@@ -116,7 +112,7 @@ export const SETTINGS = [
     },
     {
         name: 'Toplantı Odası Puanı',
-        value: 'messagePoint',
+        value: 'meetingPoint',
         description: 'Toplantı odasında alacağı puan.',
         type: 'string',
         isMultiple: false,
@@ -127,5 +123,5 @@ export const SETTINGS = [
         value: 'noMute',
         description: 'Susturması veya kulaklığı kapalıysa saysın mı?',
         type: 'boolean',
-    }
+    },
 ];

@@ -43,5 +43,5 @@ process.on('SIGHUP', () => {
     });
 });
 
-process.on('unhandledRejection', (error: Error) => console.log(`${error.name}: ${error.message}`));
-process.on('uncaughtException', (error: Error) => console.log(`${error.name}: ${error.message}`));
+// process.on('unhandledRejection', (error: Error) => console.log(`${error.name}: ${error.message}`));
+// process.on('uncaughtException', (error: Error) => console.log(`${error.name}: ${error.message}`));

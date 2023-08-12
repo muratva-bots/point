@@ -17,6 +17,7 @@ import {
 } from 'discord.js';
 import { EMOJIS } from '@/assets';
 import { IRank, PointClass, StaffClass, StaffModel } from '@/models';
+import { TaskFlags } from '@/enums';
 
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -81,7 +82,7 @@ export class Utils {
     }
 
     getRank(roles: string[], ranks: IRank[]) {
-        if (!ranks?.length) {
+        if (!(ranks || []).length) {
             return { newRank: undefined, currentRank: undefined };
         }
 
@@ -164,11 +165,11 @@ export class Utils {
         return str;
     }
 
-    async checkTask(document: StaffClass, channel: GuildChannel, value: number, isVoice: boolean) {
+    async checkTask(document: StaffClass, channel: GuildChannel, value: number, type: TaskFlags) {
         if (document.pointsRating > document.allPoints) return;
 
         const task = document.tasks.find(
-            (t) => t.isVoice === isVoice && (t.channel === channel.id || t.channel === channel.parentId),
+            (t) => t.type === type && (t.channel === channel.id || t.channel === channel.parentId),
         );
         if (!task || task.completed) return;
 

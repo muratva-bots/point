@@ -27,7 +27,7 @@ export async function roleHandler(
     message: Message,
     option: IRoleOption,
     guildData: PointClass,
-    question: Message
+    question: Message,
 ) {
     const rowTwo = new ActionRowBuilder<RoleSelectMenuBuilder>({
         components: [

@@ -1,10 +1,5 @@
 import { GuildModel } from '@/models';
-import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    Team,
-} from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Team } from 'discord.js';
 
 const Command: Point.ICommand = {
     usages: ['sorumluluk'],
@@ -16,7 +11,7 @@ const Command: Point.ICommand = {
         return ownerID === message.author.id;
     },
     execute: async ({ client, message, guildData }) => {
-        const tasks = guildData.tasks?.filter(t => message.guild.roles.cache.has(t.role));
+        const tasks = (guildData.tasks || []).filter((t) => t.isGeneral || message.guild.roles.cache.has(t.role));
         if (!tasks.length) {
             client.utils.sendTimedMessage(message, 'Görevler ayarlanmamış.');
             return;
@@ -33,7 +28,7 @@ const Command: Point.ICommand = {
                             custom_id: t.role,
                             label: message.guild.roles.cache.get(t.role).name,
                             style: ButtonStyle.Primary,
-                        })
+                        }),
                     ],
                 }),
             );
@@ -42,12 +37,13 @@ const Command: Point.ICommand = {
         guildData.responsibilityChannel = message.channelId;
         await GuildModel.updateOne(
             { id: message.guildId },
-            { $set: { "point.responsibilityChannel": message.channelId } },
-            { upsert: true }
+            { $set: { 'point.responsibilityChannel': message.channelId } },
+            { upsert: true },
         );
 
         message.channel.send({
-            content: "Aşağıdaki butonlardan kendinize uygun olan sorumluluğu seçin! Sahip olduğunuz sorumluluk varsa eğer; butona tekrar basarsanız sorumluluk üzerinizden çekilir.",
+            content:
+                'Aşağıdaki butonlardan kendinize uygun olan sorumluluğu seçin! Sahip olduğunuz sorumluluk varsa eğer; butona tekrar basarsanız sorumluluk üzerinizden çekilir.',
             components: rows,
         });
     },

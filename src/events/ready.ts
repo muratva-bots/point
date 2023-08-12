@@ -34,7 +34,7 @@ const Ready: Point.IEvent<Events.ClientReady> = {
 
         const unTaggedMembers = guild.members.cache
             .filter(
-                (m) => !document.point.tags?.some((t) => m.user.displayName.toLowerCase().includes(t.toLowerCase())),
+                (m) => !(document.point.tags || []).some((t) => m.user.displayName.toLowerCase().includes(t.toLowerCase())),
             )
             .map((m) => m.id);
         await StaffModel.updateMany(
@@ -48,9 +48,8 @@ const Ready: Point.IEvent<Events.ClientReady> = {
         );
 
         const now = Date.now();
-        const minStaffRole = guild.roles.cache.get(document.point.minStaffRole);
         guild.members.cache
-            .filter((m) => m.roles.highest.position > minStaffRole?.position && !m.voice.channelId)
+            .filter((m) => client.utils.checkStaff(m, document.point) && !m.voice.channelId)
             .forEach((m) =>
                 client.voices.set(`${guild.id}-${m.id}`, { channelId: m.voice.channelId, joinedTimestamp: now }),
             );

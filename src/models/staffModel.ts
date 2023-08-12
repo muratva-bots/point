@@ -1,10 +1,9 @@
-import { BonusLogFlags, StaffTakeFlags } from '@/enums';
+import { BonusLogFlags, StaffTakeFlags, TaskFlags } from '@/enums';
 import { prop, getModelForClass, modelOptions } from '@typegoose/typegoose';
 
 export interface IStaffTask {
     channel?: string;
-    isInvite?: boolean;
-    isVoice?: boolean;
+    type: TaskFlags;
     count: number;
     currentCount: number;
     completed: boolean;

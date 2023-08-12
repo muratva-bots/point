@@ -1,3 +1,4 @@
+import { TaskFlags } from '@/enums';
 import { StaffModel } from '@/models';
 import { Events } from 'discord.js';
 
@@ -12,7 +13,10 @@ const GuildMemberAdd: Point.IEvent<Events.GuildMemberAdd> = {
         const invites = await member.guild.invites.fetch();
         const notHasInvite = client.invites.find((i) => !invites.has(i.code));
         const invite =
-            invites.find((i) => i.uses > client.invites.get(`${member.guild.id}-${i.code}`)?.uses) || notHasInvite;
+            invites.find((i) =>
+                client.invites.has(`${member.guild.id}-${i.code}`) &&
+                i.uses > client.invites.get(`${member.guild.id}-${i.code}`).uses
+            ) || notHasInvite;
         if (!invite || !invite.inviter) return;
 
         if (notHasInvite) client.invites.delete(`${member.guild.id}-${invite.code}`);
@@ -34,10 +38,10 @@ const GuildMemberAdd: Point.IEvent<Events.GuildMemberAdd> = {
         staffDocument.inviteUsers.push(member.id);
 
         if (staffDocument.allPoints > staffDocument.pointsRating) {
-            const task = staffDocument.tasks.find((t) => t.isInvite);
+            const task = staffDocument.tasks.find((t) => t.type === TaskFlags.Invite);
             if (task) {
                 task.count += 1;
-                if (task.currentCount >= task.count) task.count = task.count;
+                if (task.currentCount >= task.count) task.currentCount = task.count;
                 task.completed = task.currentCount >= task.count;
             }
         }

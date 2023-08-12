@@ -1,3 +1,4 @@
+import { TaskFlags } from '@/enums';
 import { StaffModel } from '@/models';
 import { Events, GuildMember } from 'discord.js';
 
@@ -27,7 +28,7 @@ const GuildMemberRemove: Point.IEvent<Events.GuildMemberRemove> = {
         staffDocument.inviteUsers = staffDocument.inviteUsers.filter((i) => member.id !== i);
 
         if (staffDocument.allPoints > staffDocument.pointsRating) {
-            const task = staffDocument.tasks.find((t) => t.isInvite);
+            const task = staffDocument.tasks.find((t) => t.type === TaskFlags.Invite);
             if (task) {
                 if (task.currentCount > 0) task.currentCount -= 1;
                 task.completed = task.currentCount >= task.count;

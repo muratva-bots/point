@@ -29,7 +29,7 @@ export async function stringHandler(
     message: Message,
     option: IStringOption,
     guildData: PointClass,
-    question: Message
+    question: Message,
 ) {
     await question.edit({
         content: '',

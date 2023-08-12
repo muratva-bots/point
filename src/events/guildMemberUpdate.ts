@@ -11,7 +11,7 @@ const GuildMemberUpdate: Point.IEvent<Events.GuildMemberUpdate> = {
         if (
             oldMember.user.bot ||
             oldMember.roles.cache.map((r) => r.id) === newMember.roles.cache.map((r) => r.id) ||
-            !guildData.ranks?.length
+            !(guildData.ranks || []).length
         )
             return;
 

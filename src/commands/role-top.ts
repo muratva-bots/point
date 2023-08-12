@@ -24,7 +24,7 @@ const Command: Point.ICommand = {
             return;
         }
 
-        if (!guildData.ranks?.some((r) => r.role === role.id)) {
+        if (!(guildData.ranks || []).some((r) => r.role === role.id)) {
             client.utils.sendTimedMessage(message, 'Belirttiğin rol yetkili rolü değil.');
             return;
         }

@@ -1,3 +1,4 @@
+import { TaskFlags } from '@/enums';
 import { IGuildTask, IRank, PointClass, StaffModel } from '@/models';
 import { Client } from '@/structures';
 import {
@@ -24,12 +25,12 @@ const Command: Point.ICommand = {
             return;
         }
 
-        if (!guildData.ranks?.length) {
+        if (!(guildData.ranks || []).length) {
             client.utils.sendTimedMessage(message, 'Roller ayarlanmamış.');
             return;
         }
 
-        if (!guildData.tasks?.length) {
+        if (!(guildData.tasks || []).length) {
             client.utils.sendTimedMessage(message, 'Görevler ayarlanmamış.');
             return;
         }
@@ -41,7 +42,10 @@ const Command: Point.ICommand = {
         }
 
         if (
-            rank.taskCount > guildData.tasks.filter((t) => message.member.roles.cache.has(t.role) || t.isGeneral).length
+            rank.taskCount >
+            guildData.tasks.filter(
+                (t) => [TaskFlags.Message, TaskFlags.Invite].includes(t.type) || message.member.roles.cache.has(t.role),
+            ).length
         ) {
             const responsibilityChannel = message.guild.channels.cache.get(guildData.responsibilityChannel);
             client.utils.sendTimedMessage(
@@ -108,8 +112,7 @@ const Command: Point.ICommand = {
                         count: t.count,
                         currentCount: 0,
                         channel: t.channel,
-                        isInvite: t.isInvite,
-                        isVoice: t.isVoice,
+                        type: t.type,
                     }),
                 );
                 document.save();
@@ -159,7 +162,7 @@ function createTaskContent(client: Client, tasks: IGuildTask[]) {
         .map(
             (task) =>
                 `${inlineCode(`• ${task.title}:`)} ${
-                    task.isVoice ? client.utils.numberToString(task.count) : task.count
+                    task.type === TaskFlags.Voice ? client.utils.numberToString(task.count) : task.count
                 }`,
         )
         .join('\n');

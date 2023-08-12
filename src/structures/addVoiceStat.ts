@@ -1,3 +1,4 @@
+import { TaskFlags } from '@/enums';
 import { PointClass, StaffModel } from '@/models';
 import { Client } from '@/structures';
 import { GuildMember, VoiceChannel } from 'discord.js';
@@ -42,7 +43,7 @@ export async function addVoiceStat(
         { upsert: true, new: true },
     );
     if (document.sleepPoints >= currentRank.maxSleep) document.sleepPoints = currentRank.maxSleep;
-    await client.utils.checkTask(document, channel, value, true);
+    await client.utils.checkTask(document, channel, value, TaskFlags.Voice);
     await client.utils.checkRank(member, document, guildData);
     document.save();
 }

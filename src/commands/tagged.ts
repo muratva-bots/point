@@ -1,3 +1,4 @@
+import { TaskFlags } from '@/enums';
 import { StaffModel } from '@/models';
 import {
     ActionRowBuilder,
@@ -24,7 +25,7 @@ const Command: Point.ICommand = {
             return;
         }
 
-        if (!guildData.tags?.some((t) => member.user.displayName.toLowerCase().includes(t.toLowerCase()))) {
+        if (!(guildData.tags || []).some((t) => member.user.displayName.toLowerCase().includes(t.toLowerCase()))) {
             client.utils.sendTimedMessage(message, 'Kullanıcı taga sahip değil.');
             return;
         }
@@ -86,11 +87,19 @@ const Command: Point.ICommand = {
                 return;
             }
 
-            await StaffModel.updateOne(
+            const authorDocument = await StaffModel.findOneAndUpdate(
                 { id: message.author.id, guild: message.guildId },
                 { $push: { taggeds: { user: member.id, time: Date.now() } } },
                 { upsert: true },
             );
+
+            const task = authorDocument.tasks.find((t) => t.type === TaskFlags.Tagged);
+            if (task) {
+                task.currentCount = task.currentCount + 1;
+                if (task.currentCount >= task.count) task.currentCount = task.count;
+                task.completed = task.currentCount >= task.count;
+                authorDocument.save();
+            }
 
             question.edit({
                 content: '',

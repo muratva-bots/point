@@ -1,17 +1,34 @@
-import { GuildModel, IResponsibilityChannel, PointClass } from "@/models";
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelSelectMenuBuilder, ChannelSelectMenuInteraction, ChannelType, ComponentType, Interaction, Message, ModalBuilder, RoleSelectMenuBuilder, RoleSelectMenuInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction, TextInputBuilder, TextInputStyle, bold, inlineCode, roleMention } from "discord.js";
-import mainHandler from "./mainHandler";
-import { Client } from "@/structures";
+import { GuildModel, IGuildTask, IResponsibilityChannel, PointClass } from '@/models';
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonInteraction,
+    ButtonStyle,
+    ChannelSelectMenuBuilder,
+    ChannelSelectMenuInteraction,
+    ChannelType,
+    ComponentType,
+    Interaction,
+    Message,
+    ModalBuilder,
+    RoleSelectMenuBuilder,
+    RoleSelectMenuInteraction,
+    StringSelectMenuBuilder,
+    StringSelectMenuInteraction,
+    TextInputBuilder,
+    TextInputStyle,
+    bold,
+    inlineCode,
+    roleMention,
+} from 'discord.js';
+import mainHandler from './mainHandler';
+import { Client } from '@/structures';
+import { TaskFlags } from '@/enums';
 
-export async function taskHandler(
-    client: Client,
-    message: Message,
-    guildData: PointClass,
-    question: Message,
-) {
+export async function taskHandler(client: Client, message: Message, guildData: PointClass, question: Message) {
     await question.edit({
         content: '',
-        components: createRow(message, guildData.responsibilityChannels),
+        components: createRow(message, guildData.tasks),
     });
 
     const filter = (i: Interaction) => i.user.id === message.author.id;
@@ -28,25 +45,35 @@ export async function taskHandler(
             return;
         }
 
-        if (i.isButton() && i.customId === "add") {
+        if (i.isButton() && i.customId === 'add') {
             const roleRow = new ActionRowBuilder<RoleSelectMenuBuilder>({
                 components: [
                     new RoleSelectMenuBuilder({
-                        custom_id: "role",
-                        placeholder: "Rol ara.."
-                    })
-                ]
-            })
+                        custom_id: 'role',
+                        placeholder: 'Rol ara..',
+                    }),
+                ],
+            });
+
+            const skipRow = new ActionRowBuilder<ButtonBuilder>({
+                components: [
+                    new ButtonBuilder({
+                        custom_id: 'skip',
+                        label: 'Geç',
+                        style: ButtonStyle.Success,
+                    }),
+                ],
+            });
+
             i.reply({
-                content: "Yetkili rolünü seçin.",
-                components: [roleRow],
-                ephemeral: true
+                content: 'Yetkili rolünü seçin. Herkese verilecek bir görev ise geç butonuna bas.',
+                components: [roleRow, skipRow],
+                ephemeral: true,
             });
 
             const interactionMessage = await i.fetchReply();
             const roleCollected = await interactionMessage.awaitMessageComponent({
                 time: 1000 * 60 * 10,
-                componentType: ComponentType.RoleSelect,
             });
             if (roleCollected) {
                 roleCollected.deferUpdate();
@@ -54,48 +81,59 @@ export async function taskHandler(
                 const typeRow = new ActionRowBuilder<StringSelectMenuBuilder>({
                     components: [
                         new StringSelectMenuBuilder({
-                            custom_id: "type",
-                            placeholder: "Türü seçin.",
+                            custom_id: 'type',
+                            placeholder: 'Türü seçin.',
                             options: [
-                                { label: "Davet", value: "invite" },
-                                { label: "Ses", value: "voice" },
-                                { label: "Genel", value: "general" },
-                            ]
-                        })
-                    ]
+                                { label: 'Davet', value: 'invite' },
+                                { label: 'Ses', value: 'voice' },
+                                { label: 'Mesaj', value: 'message' },
+                                { label: 'Taglı', value: 'tagged' },
+                                { label: 'Yetkili', value: 'staff' },
+                            ],
+                        }),
+                    ],
                 });
 
                 i.editReply({
-                    content: "Türü seçin.",
-                    components: [typeRow]
+                    content: 'Türü seçin.',
+                    components: [typeRow],
                 });
 
-                const typeCollected = await interactionMessage.awaitMessageComponent({ 
-                    time: 1000 * 60 * 10, 
-                    componentType: ComponentType.StringSelect 
+                const typeCollected = await interactionMessage.awaitMessageComponent({
+                    time: 1000 * 60 * 10,
+                    componentType: ComponentType.StringSelect,
                 });
                 if (typeCollected) {
-                    if (typeCollected.values[0] === "voice") {
+                    if (typeCollected.values[0] === 'voice') {
                         const channelRow = new ActionRowBuilder<ChannelSelectMenuBuilder>({
                             components: [
                                 new ChannelSelectMenuBuilder({
-                                    channel_types: [ChannelType.GuildVoice]
-                                })
-                            ]
-                        })
-    
-                        i.editReply({
-                            content: "Kanalı belirt.",
-                            components: [channelRow]
-                        })
-
-                        const channelCollected = await interactionMessage.awaitMessageComponent({ 
-                            time: 1000 * 60 *2,
-                            componentType: ComponentType.ChannelSelect
+                                    channel_types: [ChannelType.GuildVoice],
+                                }),
+                            ],
                         });
-                        if (channelCollected) createModal(i, typeCollected, roleCollected, typeCollected, guildData, channelCollected.values[0]);
+
+                        i.editReply({
+                            content: 'Kanalı belirt.',
+                            components: [channelRow],
+                        });
+
+                        const channelCollected = await interactionMessage.awaitMessageComponent({
+                            time: 1000 * 60 * 2,
+                            componentType: ComponentType.ChannelSelect,
+                        });
+                        if (channelCollected)
+                            createModal(
+                                i,
+                                typeCollected,
+                                roleCollected as any,
+                                typeCollected,
+                                guildData,
+                                question,
+                                channelCollected.values[0],
+                            );
                         else i.deleteReply();
-                    } else createModal(i, typeCollected, roleCollected, typeCollected, guildData);
+                    } else createModal(i, typeCollected, roleCollected as any, typeCollected, guildData, question);
                 } else i.deleteReply();
             } else i.deleteReply();
         }
@@ -106,16 +144,18 @@ export async function taskHandler(
 
             await GuildModel.updateOne(
                 { id: message.guildId },
-                { $set: { 'point.ranks': guildData.responsibilityChannel }, },
+                { $set: { 'point.ranks': guildData.responsibilityChannel } },
             );
 
             i.reply({
-                content: `Başarıyla ${i.values.map(r => `${roleMention(r)} (${inlineCode(r)})`).join(", ")} adlı ayardan kaldırıldı.`,
+                content: `Başarıyla ${i.values
+                    .map((r) => `${roleMention(r)} (${inlineCode(r)})`)
+                    .join(', ')} adlı ayardan kaldırıldı.`,
                 ephemeral: true,
             });
 
             question.edit({
-                components: createRow(message, guildData.responsibilityChannels),
+                components: createRow(message, guildData.tasks),
             });
         }
     });
@@ -138,7 +178,7 @@ export async function taskHandler(
     });
 }
 
-function createRow(message: Message, responsibilityChannels: IResponsibilityChannel[]) {
+function createRow(message: Message, responsibilityChannels: IGuildTask[]) {
     const datas = (responsibilityChannels || []).filter((r) => message.guild.roles.cache.has(r.role));
     return [
         new ActionRowBuilder<StringSelectMenuBuilder>({
@@ -146,14 +186,14 @@ function createRow(message: Message, responsibilityChannels: IResponsibilityChan
                 new StringSelectMenuBuilder({
                     custom_id: 'data',
                     disabled: !datas.length,
-                    placeholder: "Kanala Özel Puan",
+                    placeholder: 'Görevler',
                     max_values: datas.length === 0 ? 1 : datas.length,
                     options: datas.length
                         ? datas.map((r) => ({
-                            label: message.guild.roles.cache.get(r.role).name,
-                            value: r.role,
-                            description: `${r.point} puan - ${message.guild.channels.cache.get(r.id)?.name || "silinmiş kanal"}`,
-                        }))
+                              label: message.guild.roles.cache.get(r.role).name,
+                              value: r.role,
+                              description: `${r.count}`,
+                          }))
                         : [{ label: 'test', value: 'a' }],
                 }),
             ],
@@ -175,79 +215,88 @@ function createRow(message: Message, responsibilityChannels: IResponsibilityChan
     ];
 }
 
+const types = {
+    message: TaskFlags.Message,
+    voice: TaskFlags.Voice,
+    invite: TaskFlags.Invite,
+    staff: TaskFlags.Staff,
+    tagged: TaskFlags.Tagged,
+};
+
 async function createModal(
-    mainInteraction: ButtonInteraction, 
+    mainInteraction: ButtonInteraction,
     interaction: ChannelSelectMenuInteraction | StringSelectMenuInteraction,
-    roleCollected: RoleSelectMenuInteraction,
+    roleCollected: RoleSelectMenuInteraction | ButtonInteraction,
     typeCollected: StringSelectMenuInteraction,
     guildData: PointClass,
-    channel?: string
+    question: Message,
+    channel?: string,
 ) {
     const pointRow = new ActionRowBuilder<TextInputBuilder>({
         components: [
             new TextInputBuilder({
-                custom_id: "point",
-                placeholder: "10000",
-                label: "Puan:",
+                custom_id: 'point',
+                placeholder: '10000',
+                label: 'Puan:',
                 style: TextInputStyle.Short,
-                required: true
-            })
-        ]
+                required: true,
+            }),
+        ],
     });
 
     const titleRow = new ActionRowBuilder<TextInputBuilder>({
         components: [
             new TextInputBuilder({
-                custom_id: "title",
-                placeholder: "Kayıt Görevi (Sorumluluk)",
-                label: "Görev Adı:",
+                custom_id: 'title',
+                placeholder: 'Kayıt Görevi (Sorumluluk)',
+                label: 'Görev Adı:',
                 style: TextInputStyle.Short,
-                required: true
-            })
-        ]
+                required: true,
+            }),
+        ],
     });
 
     const countRow = new ActionRowBuilder<TextInputBuilder>({
         components: [
             new TextInputBuilder({
-                custom_id: "count",
-                placeholder: "10000",
-                label: "Sayı:",
+                custom_id: 'count',
+                placeholder: '10000',
+                label: 'Sayı:',
                 style: TextInputStyle.Short,
-                required: true
-            })
-        ]
+                required: true,
+            }),
+        ],
     });
 
     const modal = new ModalBuilder({
-        custom_id: "modal",
-        title: "Görev Ekleme",
-        components: [pointRow, titleRow, countRow]
+        custom_id: 'modal',
+        title: 'Görev Ekleme',
+        components: [pointRow, titleRow, countRow],
     });
 
     await interaction.showModal(modal);
 
     const modalCollected = await interaction.awaitModalSubmit({
-        time: 1000 * 60 * 3
+        time: 1000 * 60 * 3,
     });
     if (modalCollected) {
         modalCollected.deferUpdate();
 
-        const point = Number(modalCollected.fields.getTextInputValue("point"));
+        const point = Number(modalCollected.fields.getTextInputValue('point'));
         if (!point) {
             mainInteraction.editReply({
-                content: "Puan sayı olmak zorundadır.",
-                components: []
-            })
+                content: 'Puan sayı olmak zorundadır.',
+                components: [],
+            });
             return;
         }
 
-        const count = Number(modalCollected.fields.getTextInputValue("count"));
+        const count = Number(modalCollected.fields.getTextInputValue('count'));
         if (!count) {
             mainInteraction.editReply({
-                content: "Sayı sayı olmak zorundadır.",
-                components: []
-            })
+                content: 'Sayı sayı olmak zorundadır.',
+                components: [],
+            });
             return;
         }
 
@@ -256,17 +305,30 @@ async function createModal(
             {
                 channel: channel,
                 count: count,
-                isGeneral: typeCollected.values[0] === "general",
-                isInvite: typeCollected.values[0] === "invite",
-                isVoice: typeCollected.values[0] === "voice",
-                title: modalCollected.fields.getTextInputValue("title"),
-                role: roleCollected.values[0]
-            }
+                type: types[typeCollected.values[0]],
+                title: modalCollected.fields.getTextInputValue('title'),
+                role: roleCollected.isButton() ? undefined : roleCollected.values[0],
+                isGeneral: roleCollected.isButton()
+            },
         ];
 
+        await GuildModel.updateOne(
+            { id: question.guildId },
+            { $set: { "point.tasks": guildData.tasks } },
+            { upsert: true }
+        );
+
+        question.edit({
+            components: createRow(question, guildData.tasks)
+        });
+
         mainInteraction.editReply({
-            content: `${roleMention(roleCollected.values[0])} (${inlineCode(roleCollected.values[0])}) rolü ayarlandı.`,
-            components: []
+            content: `${
+                roleCollected.isButton()
+                    ? 'Herkese göre rol'
+                    : `${roleMention(roleCollected.values[0])} (${inlineCode(roleCollected.values[0])}) rolü`
+            } ayarlandı.`,
+            components: [],
         });
     }
 }

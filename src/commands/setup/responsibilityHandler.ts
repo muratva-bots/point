@@ -147,14 +147,13 @@ export async function responsibilityChannelHandler(
 
                         await GuildModel.updateOne(
                             { id: question.guildId },
-                            { $set: { "point.responsibilityChannels": guildData.responsibilityChannels } },
-                            { upsert: true }
+                            { $set: { 'point.responsibilityChannels': guildData.responsibilityChannels } },
+                            { upsert: true, setDefaultsOnInsert: true },
                         );
-                
+
                         question.edit({
-                            components: createRow(question, guildData.responsibilityChannels)
+                            components: createRow(question, guildData.responsibilityChannels),
                         });
-                
 
                         i.editReply({
                             content: `${roleMention(roleCollected.values[0])} (${inlineCode(

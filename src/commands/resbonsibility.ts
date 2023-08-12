@@ -38,7 +38,7 @@ const Command: Point.ICommand = {
         await GuildModel.updateOne(
             { id: message.guildId },
             { $set: { 'point.responsibilityChannel': message.channelId } },
-            { upsert: true },
+            { upsert: true, setDefaultsOnInsert: true },
         );
 
         message.channel.send({

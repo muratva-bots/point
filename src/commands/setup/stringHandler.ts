@@ -94,7 +94,7 @@ export async function stringHandler(
 
                 await GuildModel.updateOne(
                     { id: message.guildId },
-                    { $set: { [`moderation.${option.value}`]: guildData[option.value] } },
+                    { $set: { [`point.${option.value}`]: guildData[option.value] } },
                 );
 
                 modalCollector.reply({
@@ -111,7 +111,7 @@ export async function stringHandler(
         if (i.isButton() && i.customId === 'reset') {
             guildData[option.value] = undefined;
 
-            await GuildModel.updateOne({ id: message.guildId }, { $unset: { [`moderation.${option.value}`]: 1 } });
+            await GuildModel.updateOne({ id: message.guildId }, { $unset: { [`point.${option.value}`]: 1 } });
 
             i.reply({
                 content: `Başarıyla ${bold(option.name)} adlı ayar sıfırlandı.`,

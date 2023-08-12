@@ -45,6 +45,9 @@ const Command: Point.ICommand = {
         }
 
         const rank = (guildData.ranks || []).find((r) => member.roles.cache.has(r.role));
+        if (!document.pointsRating) document.pointsRating = client.utils.pointsRating(member.guild, rank);
+        document.save();
+
         const embed = new EmbedBuilder({
             color: client.utils.getRandomColor(),
             author: {
@@ -79,6 +82,8 @@ const Command: Point.ICommand = {
         });
 
         collector.on('collect', (i: ButtonInteraction) => {
+            i.deferUpdate();
+
             if (i.customId === 'general') {
                 buttonRow.components[0].setLabel('Görevlere Bak').setCustomId('task');
 
@@ -93,7 +98,7 @@ const Command: Point.ICommand = {
                 const complatedTasks = document.tasks.filter((t) => t.completed).length;
                 const needRoleTime = rank.roleTime ? rank.roleTime - userRoleTimeDay : 0;
                 const tasksMapped = document.tasks.map((t) => {
-                    const task = guildData.tasks.find((tt) => tt.channel === t.channel);
+                    const task = guildData.tasks.find((tt) => tt.type === t.type);
                     return `${inlineCode(`• ${task.title}:`)} ${client.utils.createBar(
                         t.currentCount,
                         t.count,
@@ -122,6 +127,7 @@ const Command: Point.ICommand = {
         });
 
         collector.on('end', (_, reason) => {
+            document.save();
             if (reason === 'time') {
                 const timeFinished = new ActionRowBuilder<ButtonBuilder>({
                     components: [
@@ -151,17 +157,18 @@ function getGeneralContent(
 ) {
     const lastRole = document.oldRoles[document.oldRoles.length - 1] || { admin: '?', startTimestamp: 0 };
     const userRoleTime = Date.now() - document.roleStartTime;
-    const userRoleTimeDay = Math.floor((userRoleTime / 1000) * 60 * 60 * 24);
+    const userRoleTimeDay = Math.floor(userRoleTime / (1000 * 60 * 60 * 24));
     const complatedTasks = document.tasks.filter((t) => t.completed).length;
-    const needRoleTime = rank.roleTime ? rank.roleTime - userRoleTimeDay * 7 : 0;
+    const needRoleTime = rank.roleTime ? rank.roleTime - userRoleTimeDay : 0;
 
     const needRating = document.pointsRating - document.allPoints;
     const needCount = (rank.roleTime || 0) + rank.point + (rank.taskCount || 0) + document.pointsRating;
     const complatedCount =
-        (rank.roleTime ? userRoleTimeDay * 7 : 0) + document.allPoints + complatedTasks + needRating > 0
+        (rank.roleTime ? userRoleTimeDay : 0) + document.allPoints + complatedTasks + needRating > 0
             ? needRating
             : document.pointsRating;
 
+    rank.roleTime = 40;
     return [
         `${member} (${inlineCode(member.id)}) adlı kullanıcının puan bilgileri;\n`,
         `${inlineCode('• Yetkiyi Veren/Tarih:')} ${
@@ -173,19 +180,29 @@ function getGeneralContent(
             document.allPoints > document.pointsRating ? '🟩' : '🟥'
         }`,
         rank.roleTime
-            ? `${inlineCode(`• Yetki Süresi:`)} ${client.utils
-                  .getEmoji('tik')
-                  .repeat(userRoleTimeDay * 7)}${client.utils
-                  .getEmoji('carpi')
-                  .repeat(rank.roleTime - userRoleTime)} (${bold(`${userRoleTimeDay} Gün / ${rank.roleTime} Gün`)})`
+            ? `${inlineCode(`• Yetki Süresi:`)} ${
+                  userRoleTimeDay / findLargestPrimeFactor(rank.roleTime) > 0
+                      ? client.utils.getEmoji('tik').repeat(userRoleTimeDay / findLargestPrimeFactor(rank.roleTime))
+                      : ''
+              }${
+                  rank.roleTime - userRoleTimeDay > 0
+                      ? client.utils
+                            .getEmoji('carpi')
+                            .repeat(
+                                Math.floor(rank.roleTime - userRoleTimeDay) / 7
+                                    ? Math.floor(rank.roleTime - userRoleTimeDay) / 7
+                                    : 1,
+                            )
+                      : ''
+              } (${bold(`${userRoleTimeDay} Gün / ${rank.roleTime} Gün`)})`
             : undefined,
         `${inlineCode(`• Bireysel/Genel Toplantı:`)} ${
             document.inPersonalMeeting ? client.utils.getEmoji('tik') : client.utils.getEmoji('carpi')
         }/${document.inGeneralMeeting ? client.utils.getEmoji('tik') : client.utils.getEmoji('carpi')}`,
         rank.taskCount
-            ? `${inlineCode('• Görev Durumu:')}\n${client.utils.createBar(rank.taskCount, complatedTasks)}`
+            ? `${inlineCode('• Görev Durumu:')}\n${client.utils.createBar(complatedTasks, rank.taskCount)}`
             : undefined,
-        `${inlineCode('• İlerleme Durumu:')}\n${client.utils.createBar(needCount, complatedCount)}`,
+        `${inlineCode('• İlerleme Durumu:')}\n${client.utils.createBar(complatedCount, needCount)}`,
         `### Puan Bilgileri`,
         `${inlineCode('• Toplam/Gereken Puan:')} ${bold(`${document.allPoints}/${rank.point}`)}`,
         `${inlineCode('• Kayıt Puan:')} ${document.registerPoints}`,
@@ -210,4 +227,17 @@ function getStatus(document: StaffClass, rank: IRank, complatedTasks: number, ne
     else if (rank.roleTime && rank.roleTime > needRoleTime)
         status = `Yetki atlaman için şuanki rolünde [2;36m${needRoleTime}[0m gün daha durmalısın.`;
     return codeBlock('ansi', `[2;35m[1;35m${status}[0m[2;35m[0m`);
+}
+
+function findLargestPrimeFactor(number: number) {
+    let largestPrime = 2;
+
+    while (number > 1) {
+        while (number % largestPrime === 0) {
+            number /= largestPrime;
+        }
+        largestPrime++;
+    }
+
+    return largestPrime - 1;
 }

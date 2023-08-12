@@ -38,7 +38,7 @@ export async function addVoiceStat(
     if (key !== 'sleepPoints' && Date.now() - guildData.eventFinishTimestamp >= 0) point *= 2;
 
     const document = await StaffModel.findOneAndUpdate(
-        { id: member.id },
+        { id: member.id, guild: member.guild.id },
         { $inc: { [key]: point, total: point, allPoints: point } },
         { upsert: true, new: true },
     );

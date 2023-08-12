@@ -32,9 +32,11 @@ const GuildMemberRemove: Point.IEvent<Events.GuildMemberRemove> = {
             if (task) {
                 if (task.currentCount > 0) task.currentCount -= 1;
                 task.completed = task.currentCount >= task.count;
+                staffDocument.markModified('tasks');
             }
         }
-
+        
+        staffDocument.markModified('inviteUsers');
         staffDocument.save();
     },
 };

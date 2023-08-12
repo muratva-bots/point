@@ -34,7 +34,10 @@ const Ready: Point.IEvent<Events.ClientReady> = {
 
         const unTaggedMembers = guild.members.cache
             .filter(
-                (m) => !(document.point.tags || []).some((t) => m.user.displayName.toLowerCase().includes(t.toLowerCase())),
+                (m) =>
+                    !(document.point.tags || []).some((t) =>
+                        m.user.displayName.toLowerCase().includes(t.toLowerCase()),
+                    ),
             )
             .map((m) => m.id);
         await StaffModel.updateMany(

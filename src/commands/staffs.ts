@@ -25,13 +25,8 @@ const Command: Point.ICommand = {
             (await client.utils.getMember(message.guild, args[0])) ||
             (message.reference ? (await message.fetchReference()).member : message.member);
         const document = await StaffModel.findOne({ id: member.id, guild: message.guildId });
-        if (!document || document.staffTakes.length) {
+        if (!document || !document.staffTakes.length) {
             client.utils.sendTimedMessage(message, 'Veri bulunmuyor.');
-            return;
-        }
-
-        if (!(guildData.tags || []).some((t) => member.user.displayName.toLowerCase().includes(t.toLowerCase()))) {
-            client.utils.sendTimedMessage(message, 'Kullanıcı taga sahip değil.');
             return;
         }
 
@@ -55,7 +50,7 @@ const Command: Point.ICommand = {
         });
 
         const question = await message.channel.send({
-            embeds: [embed],
+            embeds: [embed.setDescription(mappedDatas.slice(0, 5).join("\n\n"))],
             components: [client.utils.paginationButtons(page, totalData)],
         });
 
@@ -77,7 +72,7 @@ const Command: Point.ICommand = {
             if (i.customId === 'last') page = totalData;
 
             question.edit({
-                embeds: [embed.setDescription(mappedDatas.slice(page === 1 ? 0 : page * 5 - 5, page * 5).join(''))],
+                embeds: [embed.setDescription(mappedDatas.slice(page === 1 ? 0 : page * 5 - 5, page * 5).join('\n\n'))],
                 components: [client.utils.paginationButtons(page, totalData)],
             });
         });

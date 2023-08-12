@@ -136,7 +136,7 @@ const Command: Point.ICommand = {
                 time: 1000 * 60 * 5,
             });
             if (modalCollector) {
-                modalCollector.deferUpdate()
+                modalCollector.deferUpdate();
                 const reason = modalCollector.fields.getTextInputValue('reason');
                 const point = Number(modalCollector.fields.getTextInputValue('point'));
                 if (!point) {
@@ -163,7 +163,8 @@ const Command: Point.ICommand = {
                                 point.toString(),
                             )} puan ${collected.customId === 'add' ? 'eklendi' : 'çıkarıldı'}.`,
                         ),
-                    ], components: []
+                    ],
+                    components: [],
                 });
             } else question.edit({ components: [timeFinished] });
         } else question.edit({ components: [timeFinished] });

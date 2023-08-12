@@ -92,7 +92,7 @@ export class StaffClass {
     @prop({ type: () => [String], default: [] })
     public inviteUsers: string[];
 
-    @prop({ type: () => [String], default: [] })
+    @prop({ type: () => [Object], default: [] })
     public taggeds: ITagged[];
 
     @prop({ type: () => Number, default: 0 })

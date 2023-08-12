@@ -108,6 +108,7 @@ export async function taskHandler(client: Client, message: Message, guildData: P
                         const channelRow = new ActionRowBuilder<ChannelSelectMenuBuilder>({
                             components: [
                                 new ChannelSelectMenuBuilder({
+                                    custom_id: "channel",
                                     channel_types: [ChannelType.GuildVoice],
                                 }),
                             ],
@@ -232,18 +233,6 @@ async function createModal(
     question: Message,
     channel?: string,
 ) {
-    const pointRow = new ActionRowBuilder<TextInputBuilder>({
-        components: [
-            new TextInputBuilder({
-                custom_id: 'point',
-                placeholder: '10000',
-                label: 'Puan:',
-                style: TextInputStyle.Short,
-                required: true,
-            }),
-        ],
-    });
-
     const titleRow = new ActionRowBuilder<TextInputBuilder>({
         components: [
             new TextInputBuilder({
@@ -260,8 +249,20 @@ async function createModal(
         components: [
             new TextInputBuilder({
                 custom_id: 'count',
-                placeholder: '10000',
+                placeholder: '10',
                 label: 'Sayı:',
+                style: TextInputStyle.Short,
+                required: true,
+            }),
+        ],
+    });
+
+    const descriptionRow = new ActionRowBuilder<TextInputBuilder>({
+        components: [
+            new TextInputBuilder({
+                custom_id: 'description',
+                placeholder: 'Sunucumuza 10 adet yeni hesap olmayan kullanıcı çekmelisin.',
+                label: 'Açıklama:',
                 style: TextInputStyle.Short,
                 required: true,
             }),
@@ -271,7 +272,7 @@ async function createModal(
     const modal = new ModalBuilder({
         custom_id: 'modal',
         title: 'Görev Ekleme',
-        components: [pointRow, titleRow, countRow],
+        components: [titleRow, descriptionRow, countRow],
     });
 
     await interaction.showModal(modal);
@@ -281,15 +282,6 @@ async function createModal(
     });
     if (modalCollected) {
         modalCollected.deferUpdate();
-
-        const point = Number(modalCollected.fields.getTextInputValue('point'));
-        if (!point) {
-            mainInteraction.editReply({
-                content: 'Puan sayı olmak zorundadır.',
-                components: [],
-            });
-            return;
-        }
 
         const count = Number(modalCollected.fields.getTextInputValue('count'));
         if (!count) {
@@ -308,18 +300,19 @@ async function createModal(
                 type: types[typeCollected.values[0]],
                 title: modalCollected.fields.getTextInputValue('title'),
                 role: roleCollected.isButton() ? undefined : roleCollected.values[0],
-                isGeneral: roleCollected.isButton()
+                isGeneral: roleCollected.isButton(),
+                description: modalCollected.fields.getTextInputValue('description')
             },
         ];
 
         await GuildModel.updateOne(
             { id: question.guildId },
-            { $set: { "point.tasks": guildData.tasks } },
-            { upsert: true }
+            { $set: { 'point.tasks': guildData.tasks } },
+            { upsert: true, setDefaultsOnInsert: true },
         );
 
         question.edit({
-            components: createRow(question, guildData.tasks)
+            components: createRow(question, guildData.tasks),
         });
 
         mainInteraction.editReply({

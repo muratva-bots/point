@@ -90,7 +90,7 @@ const Command: Point.ICommand = {
             const authorDocument = await StaffModel.findOneAndUpdate(
                 { id: message.author.id, guild: message.guildId },
                 { $push: { taggeds: { user: member.id, time: Date.now() } } },
-                { upsert: true },
+                { new: true, upsert: true, setDefaultsOnInsert: true },
             );
 
             const task = authorDocument.tasks.find((t) => t.type === TaskFlags.Tagged);
@@ -98,7 +98,8 @@ const Command: Point.ICommand = {
                 task.currentCount = task.currentCount + 1;
                 if (task.currentCount >= task.count) task.currentCount = task.count;
                 task.completed = task.currentCount >= task.count;
-                authorDocument.save();
+                authorDocument.markModified('tasks');
+                await authorDocument.save();
             }
 
             question.edit({

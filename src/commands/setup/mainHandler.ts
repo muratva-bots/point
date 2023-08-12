@@ -1,5 +1,5 @@
 import { SETTINGS } from '@/assets';
-import { PointClass } from '@/models';
+import { GuildModel, PointClass } from '@/models';
 import { Client } from '@/structures';
 import {
     ActionRowBuilder,
@@ -26,14 +26,24 @@ async function mainHandler(client: Client, message: Message, guildData: PointCla
                     new StringSelectMenuBuilder({
                         customId: `change-setting`,
                         placeholder: 'Değişilecek ayarı seçiniz!',
-                        options: SETTINGS.map((o) => ({
-                            label: o.name as string,
-                            description: o.description as string,
-                            value: o.value as string,
-                            emoji: {
-                                id: '1134954912543944835',
+                        options: [
+                            ...SETTINGS.map((o) => ({
+                                label: o.name as string,
+                                description: o.description as string,
+                                value: o.value as string,
+                                emoji: {
+                                    id: '1134954912543944835',
+                                },
+                            })),
+                            {
+                                label: 'Ayarları Sıfırla',
+                                value: 'reset',
+                                description: 'Sunucunun ayarlanmış bütün ayarlarını sıfırlar.',
+                                emoji: {
+                                    id: '1134953250748117082',
+                                },
                             },
-                        })),
+                        ],
                     }),
                 ],
             }),
@@ -48,9 +58,22 @@ async function mainHandler(client: Client, message: Message, guildData: PointCla
         max: 1,
     });
 
-    collector.on('collect', (i: StringSelectMenuInteraction) => {
+    collector.on('collect', async (i: StringSelectMenuInteraction) => {
         i.deferUpdate();
         collector.stop('FINISHED');
+
+        if (i.values[0] === "reset") {
+            await GuildModel.deleteOne({ id: message.guildId });
+
+            const document = await GuildModel.create({ id: message.guildId });
+            guildData = document.point;
+
+            question.edit({
+                content: "Ayarlar sıfırlandı.",
+                components: []
+            });
+            return;
+        }
 
         const option = SETTINGS.find((o) => o.value === i.values[0]);
         if (option.type === 'role') roleHandler(client, message, option as IRoleOption, guildData, question);

@@ -12,6 +12,7 @@ export interface IGuildTask {
     channel: string;
     title: string;
     count: number;
+    description: string;
     type: TaskFlags;
     isGeneral: boolean;
     role?: string;

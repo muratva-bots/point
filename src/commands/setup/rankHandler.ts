@@ -190,6 +190,7 @@ export async function rankHandler(client: Client, message: Message, guildData: P
                             return;
                         }
 
+                        const roleTimeDays = roleTime / (1000 * 60 * 60 * 24);
                         guildData.ranks = [
                             ...(guildData.ranks || []),
                             {
@@ -197,19 +198,19 @@ export async function rankHandler(client: Client, message: Message, guildData: P
                                 point: point,
                                 role: roleCollected.values[0],
                                 extraRole: extraRole,
-                                roleTime: roleTime / 1000 * 60 * 60 * 24 * 7,
+                                roleTime: roleTimeDays,
                                 taskCount: taskCount,
                             },
                         ];
 
                         await GuildModel.updateOne(
                             { id: question.guildId },
-                            { $set: { "point.ranks": guildData.ranks } },
-                            { upsert: true }
+                            { $set: { 'point.ranks': guildData.ranks } },
+                            { upsert: true, setDefaultsOnInsert: true },
                         );
-                
+
                         question.edit({
-                            components: createRow(question, guildData.ranks)
+                            components: createRow(question, guildData.ranks),
                         });
 
                         i.editReply({

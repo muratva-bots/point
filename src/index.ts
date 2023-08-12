@@ -41,6 +41,8 @@ process.on('SIGHUP', () => {
         client.voices.delete(k);
         addVoiceStat(client, member, channel as VoiceChannel, diffValue, guildData);
     });
+
+    process.exit(1);
 });
 
 // process.on('unhandledRejection', (error: Error) => console.log(`${error.name}: ${error.message}`));

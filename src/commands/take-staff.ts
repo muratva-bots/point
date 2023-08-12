@@ -80,7 +80,7 @@ const Command: Point.ICommand = {
                         style: ButtonStyle.Success,
                     }),
                     new ButtonBuilder({
-                        custom_id: 'up',
+                        custom_id: 'down',
                         disabled: currentIndex === 0,
                         label: 'Düşür',
                         style: ButtonStyle.Success,
@@ -105,6 +105,7 @@ const Command: Point.ICommand = {
             });
             if (collected) {
                 const newRank = sortedRanks[currentIndex + (collected.customId === 'up' ? 1 : -1)];
+                if (!member.roles.cache.has(sortedRanks[currentIndex].role)) member.roles.remove(sortedRanks[currentIndex].role);
                 if (!member.roles.cache.has(newRank.role)) member.roles.add(newRank.role);
 
                 await StaffModel.updateOne(
@@ -137,7 +138,7 @@ const Command: Point.ICommand = {
                             },
                         },
                     },
-                    { upsert: true },
+                    { upsert: true, setDefaultsOnInsert: true },
                 );
 
                 const defaultMessage = `${roleMention(sortedRanks[currentIndex].role)} ${inlineCode(
@@ -172,7 +173,7 @@ const Command: Point.ICommand = {
             return;
         }
 
-        const staffDocument = await StaffModel.findOne({ id: member.id });
+        const staffDocument = await StaffModel.findOne({ id: member.id, guild: message.guildId });
 
         const buttonRow = new ActionRowBuilder<ButtonBuilder>({
             components: [
@@ -217,13 +218,13 @@ const Command: Point.ICommand = {
                                                       Math.floor(o.startTimestamp / 1000),
                                                       'D',
                                                   )} (${time(Math.floor(o.startTimestamp / 1000), 'R')})`,
-                                                  `Yetki Bitiş: ${time(
+                                                  o.finishTimestamp ? `Yetki Bitiş: ${time(
                                                       Math.floor(o.finishTimestamp / 1000),
                                                       'D',
-                                                  )} (${time(Math.floor(o.finishTimestamp / 1000), 'R')})`,
-                                              ].join('\n'),
+                                                  )} (${time(Math.floor(o.finishTimestamp / 1000), 'R')})` : undefined,
+                                              ].filter(Boolean).join('\n'),
                                           )
-                                          .join('\n'),
+                                          .join('\n\n'),
                                       inline: false,
                                   } as EmbedField)
                                 : undefined,
@@ -240,6 +241,7 @@ const Command: Point.ICommand = {
             componentType: ComponentType.Button,
         });
         if (collected) {
+            embed.setFields([]);
             if (collected.customId === 'deaccept') {
                 question.edit({
                     content: '',
@@ -258,7 +260,7 @@ const Command: Point.ICommand = {
             const authorDocument = await StaffModel.findOneAndUpdate(
                 { id: message.author.id, guild: message.guildId },
                 { $push: { staffTakes: { user: member.id, time: now, role: sortedRanks[0].role } } },
-                { upsert: true },
+                { upsert: true, setDefaultsOnInsert: true },
             );
 
             const task = authorDocument.tasks.find((t) => t.type === TaskFlags.Staff);
@@ -266,7 +268,8 @@ const Command: Point.ICommand = {
                 task.currentCount = task.currentCount + 1;
                 if (task.currentCount >= task.count) task.currentCount = task.count;
                 task.completed = task.currentCount >= task.count;
-                authorDocument.save();
+                authorDocument.markModified('tasks');
+                await authorDocument.save();
             }
 
             await StaffModel.updateOne(
@@ -298,10 +301,10 @@ const Command: Point.ICommand = {
                         },
                     },
                 },
-                { upsert: true },
+                { upsert: true, setDefaultsOnInsert: true },
             );
 
-            message.member.roles.add([sortedRanks[0].role, guildData.minStaffRole]);
+            member.roles.add([sortedRanks[0].role, guildData.minStaffRole]);
 
             question.edit({
                 content: '',

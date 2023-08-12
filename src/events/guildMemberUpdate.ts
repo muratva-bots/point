@@ -16,6 +16,11 @@ const GuildMemberUpdate: Point.IEvent<Events.GuildMemberUpdate> = {
             return;
 
         if (guildData.ranks.some((r) => oldMember.roles.cache.has(r.role) && !newMember.roles.cache.has(r.role))) {
+            const entry = await newMember.guild
+                    .fetchAuditLogs({ limit: 1, type: AuditLogEvent.MemberRoleUpdate })
+                    .then((audit) => audit.entries.first());
+            if (!entry || entry.executor.bot) return;
+
             const document = await StaffModel.findOne({ id: newMember.id, guild: newMember.guild.id });
             if (document && document.oldRoles.length) {
                 const currentRole = document.oldRoles[document.oldRoles.length - 1];
@@ -25,18 +30,11 @@ const GuildMemberUpdate: Point.IEvent<Events.GuildMemberUpdate> = {
 
             const channel = newMember.guild.channels.cache.find((c) => c.name === 'staff-logs') as TextChannel;
             if (channel) {
-                const entry = await newMember.guild
-                    .fetchAuditLogs({ limit: 1, type: AuditLogEvent.MemberRoleUpdate })
-                    .then((audit) => audit.entries.first());
                 channel.send({
                     embeds: [
                         new EmbedBuilder({
                             color: client.utils.getRandomColor(),
-                            description: `${newMember} (${inlineCode(newMember.id)}) adlı kullanıcının yetkisi ${
-                                entry && entry.targetId === newMember.id
-                                    ? `${entry.executor} (${entry.executorId})`
-                                    : bold('?')
-                            } tarafından çekildi!`,
+                            description: `${newMember} (${inlineCode(newMember.id)}) adlı kullanıcının yetkisi ${entry.executor} (${entry.executorId}) tarafından çekildi!`,
                         }),
                     ],
                 });
@@ -47,20 +45,22 @@ const GuildMemberUpdate: Point.IEvent<Events.GuildMemberUpdate> = {
             const entry = await newMember.guild
                 .fetchAuditLogs({ limit: 1, type: AuditLogEvent.MemberRoleUpdate })
                 .then((audit) => audit.entries.first());
-            if (!entry || entry.targetId !== newMember.id) return;
+            if (!entry || entry.executor.bot || entry.targetId !== newMember.id) return;
 
             const now = Date.now();
             const role = newMember.roles.cache.difference(oldMember.roles.cache).first();
             await StaffModel.updateOne(
                 { id: entry.executorId, guild: newMember.guild.id },
                 { $push: { staffTakes: { user: newMember.id, time: now, role: role.id } } },
-                { upsert: true },
+                { upsert: true, setDefaultsOnInsert: true },
             );
 
+            const rank = guildData.ranks.find(r => role.id === r.role);
             await StaffModel.updateOne(
                 { id: newMember.id, guild: newMember.guild.id },
                 {
                     $set: {
+                        pointsRating: client.utils.pointsRating(newMember.guild, rank),
                         bonusPoints: 0,
                         inviteUsers: [],
                         messagePoints: 0,
@@ -86,7 +86,7 @@ const GuildMemberUpdate: Point.IEvent<Events.GuildMemberUpdate> = {
                         },
                     },
                 },
-                { upsert: true },
+                { upsert: true, setDefaultsOnInsert: true },
             );
         }
     },

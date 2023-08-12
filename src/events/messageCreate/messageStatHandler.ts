@@ -13,7 +13,7 @@ async function messageStatHandler(client: Client, message: Message, guildData: P
     if (Date.now() - guildData.eventFinishTimestamp >= 0) point *= 2;
 
     const document = await StaffModel.findOneAndUpdate(
-        { id: message.author.id },
+        { id: message.author.id, guild: message.guildId },
         { $inc: { messagePoints: point, totalPoints: point, allPoints: point } },
         { upsert: true, new: true },
     );

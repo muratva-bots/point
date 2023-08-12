@@ -113,7 +113,7 @@ const Command: Point.ICommand = {
                             $set: { inGeneralMeeting: true },
                             $inc: { allPoints: guildData.meetingPoint, totalPoints: guildData.meetingPoint },
                         },
-                        { upsert: true },
+                        { upsert: true, setDefaultsOnInsert: true },
                     );
 
                     await StaffModel.updateMany(
@@ -168,7 +168,7 @@ const Command: Point.ICommand = {
                         $set: { inPersonalMeeting: true },
                         $inc: { allPoints: guildData.meetingPoint, totalPoints: guildData.meetingPoint },
                     },
-                    { upsert: true },
+                    { upsert: true, setDefaultsOnInsert: true },
                 );
             } else {
                 question.edit({
@@ -210,7 +210,7 @@ const Command: Point.ICommand = {
                             $set: { inRoleMeeting: true },
                             $inc: { allPoints: guildData.meetingPoint, totalPoints: guildData.meetingPoint },
                         },
-                        { upsert: true },
+                        { upsert: true, setDefaultsOnInsert: true },
                     );
 
                     await StaffModel.updateMany(

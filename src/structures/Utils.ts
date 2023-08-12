@@ -18,6 +18,7 @@ import {
 import { EMOJIS } from '@/assets';
 import { IRank, PointClass, StaffClass, StaffModel } from '@/models';
 import { TaskFlags } from '@/enums';
+import { Document } from 'mongoose';
 
 const ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -121,7 +122,7 @@ export class Utils {
         if (member.roles.cache.has(currentRank.role)) await member.roles.remove(currentRank.role);
 
         await StaffModel.updateOne(
-            { user: member.id },
+            { user: member.id, guild: member.guild.id },
             {
                 $set: {
                     pointsRating: this.pointsRating(member.guild, newRank),
@@ -141,13 +142,18 @@ export class Utils {
                     tasks: [],
                 },
             },
-            { upsert: true },
+            { upsert: true, setDefaultsOnInsert: true },
         );
     }
 
     pointsRating(guild: Guild, rank: IRank) {
-        const roleMembersCount = guild.roles.cache.get(rank.role)?.members.size;
+        console.log(rank)
         const rankHalfPoint = Math.floor(rank.point / 2);
+
+        const role = guild.roles.cache.get(rank.role);
+        if (!role) return rankHalfPoint;
+
+        const roleMembersCount = role.members.size;
         if (!roleMembersCount || 3 > roleMembersCount) return rankHalfPoint;
 
         return Math.min(rankHalfPoint + Math.pow(roleMembersCount, 2) + 500 * roleMembersCount + 250, rank.point);
@@ -165,7 +171,7 @@ export class Utils {
         return str;
     }
 
-    async checkTask(document: StaffClass, channel: GuildChannel, value: number, type: TaskFlags) {
+    async checkTask(document: Document<unknown, any, StaffClass> & StaffClass, channel: GuildChannel, value: number, type: TaskFlags) {
         if (document.pointsRating > document.allPoints) return;
 
         const task = document.tasks.find(
@@ -173,6 +179,7 @@ export class Utils {
         );
         if (!task || task.completed) return;
 
+        document.markModified('tasks');
         task.currentCount += value;
         if (task.currentCount >= task.count) {
             task.currentCount = task.count;

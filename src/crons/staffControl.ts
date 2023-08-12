@@ -27,6 +27,7 @@ export function staffControl(client: Client, guild: Guild) {
 
         const documents = await StaffModel.find({
             id: { $in: members },
+            guild: guild.id,
             $or: [{ roleTime: { $gte: now + ONE_DAY * 3 } }, { staffTime: { $gte: now + ONE_DAY * 7 } }],
         });
         if (!documents.length) return;

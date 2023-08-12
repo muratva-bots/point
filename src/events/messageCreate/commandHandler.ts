@@ -14,9 +14,10 @@ function commandHandler(client: Client, message: Message, guildData: PointClass)
 
     const [commandName, ...args] = message.content.slice(prefix.length).trim().split(' ');
     const command = client.commands.find((command) => command.usages.includes(commandName.toLowerCase()));
-    if (command.checkPermission && !command.checkPermission({ client, message, guildData })) return;
-
-    if (command) command.execute({ client, message, args, guildData });
+    if (command) {
+        if (command.checkPermission && !command.checkPermission({ client, message, guildData })) return;
+        command.execute({ client, message, args, guildData });
+    }
 }
 
 export default commandHandler;

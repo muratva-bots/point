@@ -8,8 +8,12 @@ const UserUpdate: Point.IEvent<Events.UserUpdate> = {
         const guildData = client.servers.get(client.config.GUILD_ID);
         if (!guildData || !(guildData.tags || []).length) return;
 
-        const oldHasTag = (guildData.tags || []).some((t) => oldUser.displayName.toLowerCase().includes(t.toLowerCase()));
-        const newHasTag = (guildData.tags || []).some((t) => newUser.displayName.toLowerCase().includes(t.toLowerCase()));
+        const oldHasTag = (guildData.tags || []).some((t) =>
+            oldUser.displayName.toLowerCase().includes(t.toLowerCase()),
+        );
+        const newHasTag = (guildData.tags || []).some((t) =>
+            newUser.displayName.toLowerCase().includes(t.toLowerCase()),
+        );
 
         if (oldHasTag && !newHasTag) {
             const staffDocuments = await StaffModel.find(
@@ -18,7 +22,7 @@ const UserUpdate: Point.IEvent<Events.UserUpdate> = {
                     $or: [{ 'staffTakes.user': newUser.id }, { taggeds: { $in: [newUser.id] } }],
                 },
                 { $pull: { staffTakes: { user: newUser.id }, taggeds: newUser.id } },
-                { upsert: true },
+                { upsert: true, setDefaultsOnInsert: true },
             );
 
             for (const staffDocument of staffDocuments) {
@@ -27,6 +31,7 @@ const UserUpdate: Point.IEvent<Events.UserUpdate> = {
                     if (task) {
                         if (task.currentCount > 0) task.currentCount = task.currentCount - 1;
                         task.completed = task.currentCount >= task.count;
+                        staffDocument.markModified('tasks');
                     }
                 }
 
@@ -35,6 +40,7 @@ const UserUpdate: Point.IEvent<Events.UserUpdate> = {
                     if (task) {
                         if (task.currentCount > 0) task.currentCount = task.currentCount - 1;
                         task.completed = task.currentCount >= task.count;
+                        staffDocument.markModified('tasks');
                     }
                 }
 

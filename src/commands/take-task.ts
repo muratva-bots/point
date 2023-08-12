@@ -1,6 +1,5 @@
 import { TaskFlags } from '@/enums';
 import { IGuildTask, IRank, PointClass, StaffModel } from '@/models';
-import { Client } from '@/structures';
 import {
     ActionRowBuilder,
     ButtonBuilder,
@@ -10,7 +9,6 @@ import {
     EmbedBuilder,
     Message,
     codeBlock,
-    inlineCode,
 } from 'discord.js';
 
 const Command: Point.ICommand = {
@@ -44,14 +42,13 @@ const Command: Point.ICommand = {
         if (
             rank.taskCount >
             guildData.tasks.filter(
-                (t) => [TaskFlags.Message, TaskFlags.Invite].includes(t.type) || message.member.roles.cache.has(t.role),
+                (t) => t.isGeneral || message.member.roles.cache.has(t.role),
             ).length
         ) {
             const responsibilityChannel = message.guild.channels.cache.get(guildData.responsibilityChannel);
             client.utils.sendTimedMessage(
                 message,
-                `Yeterli sorumluluğun bulunmuyor ${
-                    responsibilityChannel ? `${responsibilityChannel} kanalından` : 'yetkililerden sorumluluk'
+                `Yeterli sorumluluğun bulunmuyor ${responsibilityChannel ? `${responsibilityChannel} kanalından` : 'yetkililerden sorumluluk'
                 } almalısın.`,
             );
             return;
@@ -79,7 +76,15 @@ const Command: Point.ICommand = {
 
         let currentTasks: IGuildTask[] = createNewTasks(message, guildData, rank);
         const question = await message.channel.send({
-            embeds: [embed.setDescription(createTaskContent(client, currentTasks))],
+            embeds: [
+                embed.setFields(
+                    currentTasks.map((task) => ({
+                        name: task.title,
+                        value: task.description,
+                        inline: false
+                    }))
+                )
+            ],
             components: [buttonRow],
         });
 
@@ -91,21 +96,19 @@ const Command: Point.ICommand = {
         });
 
         collector.on('collect', async (i: ButtonInteraction) => {
+            i.deferUpdate();
             if (i.customId === 'accept') {
                 collector.stop('FINISHED');
                 question.edit({
                     embeds: [
-                        embed.setDescription(
-                            `${codeBlock('ansi', '[2;36mAşağıda görünen veriler artık senin görevin.[0m')}\n${
-                                embed.data.description
-                            }`,
-                        ),
+                        embed.setDescription(codeBlock('ansi', '[2;36mAşağıda görünen veriler artık senin görevin.[0m')),
                     ],
                     components: [],
                 });
 
                 const query = { id: message.author.id, guild: message.guildId };
                 const document = (await StaffModel.findOne(query)) || new StaffModel(query);
+                document.tasks = [];
                 currentTasks.forEach((t) =>
                     document.tasks.push({
                         completed: false,
@@ -119,7 +122,15 @@ const Command: Point.ICommand = {
             } else {
                 currentTasks = createNewTasks(message, guildData, rank);
                 question.edit({
-                    embeds: [embed.setDescription(createTaskContent(client, currentTasks))],
+                    embeds: [
+                        embed.setFields(
+                            currentTasks.map((task) => ({
+                                name: task.title,
+                                value: task.description,
+                                inline: false
+                            }))
+                        )
+                    ],
                 });
             }
         });
@@ -150,20 +161,9 @@ function createNewTasks(message: Message, guildData: PointClass, rank: IRank) {
     const userTasks = [];
     for (let i = 0; rank.taskCount > i; i++) {
         const task = usableTasks[Math.floor(Math.random() * usableTasks.length)];
-        usableTasks = usableTasks.filter((t) => t.title !== task.title);
+        usableTasks = usableTasks.filter((t) => t.type !== task.type);
         userTasks.push(task);
     }
 
     return userTasks;
-}
-
-function createTaskContent(client: Client, tasks: IGuildTask[]) {
-    return tasks
-        .map(
-            (task) =>
-                `${inlineCode(`• ${task.title}:`)} ${
-                    task.type === TaskFlags.Voice ? client.utils.numberToString(task.count) : task.count
-                }`,
-        )
-        .join('\n');
 }

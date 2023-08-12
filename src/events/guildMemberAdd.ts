@@ -13,9 +13,10 @@ const GuildMemberAdd: Point.IEvent<Events.GuildMemberAdd> = {
         const invites = await member.guild.invites.fetch();
         const notHasInvite = client.invites.find((i) => !invites.has(i.code));
         const invite =
-            invites.find((i) =>
-                client.invites.has(`${member.guild.id}-${i.code}`) &&
-                i.uses > client.invites.get(`${member.guild.id}-${i.code}`).uses
+            invites.find(
+                (i) =>
+                    client.invites.has(`${member.guild.id}-${i.code}`) &&
+                    i.uses > client.invites.get(`${member.guild.id}-${i.code}`).uses,
             ) || notHasInvite;
         if (!invite || !invite.inviter) return;
 
@@ -28,6 +29,9 @@ const GuildMemberAdd: Point.IEvent<Events.GuildMemberAdd> = {
                 uses: invite.uses,
             });
         }
+
+
+        if (1000 * 60 * 60 * 24 * 7 >= Date.now() - member.user.createdTimestamp) return;
 
         const inviteMember = await client.utils.getMember(member.guild, invite.inviter.id);
         if (!inviteMember || !client.utils.checkStaff(inviteMember, guildData)) return;
@@ -43,9 +47,11 @@ const GuildMemberAdd: Point.IEvent<Events.GuildMemberAdd> = {
                 task.count += 1;
                 if (task.currentCount >= task.count) task.currentCount = task.count;
                 task.completed = task.currentCount >= task.count;
+                staffDocument.markModified('tasks');
             }
         }
 
+        staffDocument.markModified('inviteUsers');
         staffDocument.save();
     },
 };

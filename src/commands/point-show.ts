@@ -1,6 +1,6 @@
 import { TaskFlags } from '@/enums';
 import { IRank, PointClass, StaffClass, StaffModel } from '@/models';
-import { Client } from '@/structures';
+import { Client, addVoiceStat } from '@/structures';
 import {
     ActionRowBuilder,
     ButtonBuilder,
@@ -9,6 +9,7 @@ import {
     ComponentType,
     EmbedBuilder,
     GuildMember,
+    VoiceChannel,
     bold,
     codeBlock,
     inlineCode,
@@ -30,6 +31,19 @@ const Command: Point.ICommand = {
         if (!client.utils.checkStaff(member, guildData)) {
             client.utils.sendTimedMessage(message, 'Belirttiğin kullanıcı yetkili değil.');
             return;
+        }
+
+        const voiceCache = client.voices.get(`${message.guildId}-${member.id}`);
+        if (voiceCache) {
+            const voiceChannel = message.guild.channels.cache.get(voiceCache.channelId) as VoiceChannel;
+            if (voiceChannel) {
+                const now = Date.now();
+                addVoiceStat(client, member, voiceChannel, now - voiceCache.joinedTimestamp, guildData);
+                client.voices.set(`${message.guildId}-${member.id}`, {
+                    channelId: voiceCache.channelId,
+                    joinedTimestamp: now
+                });
+            }
         }
 
         const document = await StaffModel.findOne({ id: member.id, guild: message.guildId });

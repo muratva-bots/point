@@ -13,7 +13,6 @@ const Ready: Point.IEvent<Events.ClientReady> = {
 
         await guild.members.fetch();
         await guild.fetchOwner();
-        await guild.bans.fetch();
         staffControl(client, guild);
 
         const invites = await guild.invites.fetch();

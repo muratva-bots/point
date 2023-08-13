@@ -38,7 +38,7 @@ const Command: Point.ICommand = {
             const voiceChannel = message.guild.channels.cache.get(voiceCache.channelId) as VoiceChannel;
             if (voiceChannel) {
                 const now = Date.now();
-                addVoiceStat(client, member, voiceChannel, now - voiceCache.joinedTimestamp, guildData);
+                await addVoiceStat(client, member, voiceChannel, now - voiceCache.joinedTimestamp, guildData);
                 client.voices.set(`${message.guildId}-${member.id}`, {
                     channelId: voiceCache.channelId,
                     joinedTimestamp: now

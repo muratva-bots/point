@@ -106,7 +106,7 @@ const Command: Point.ICommand = {
             if (collected) {
                 const newRank = sortedRanks[currentIndex + (collected.customId === 'up' ? 1 : -1)];
                 if (!member.roles.cache.has(sortedRanks[currentIndex].role)) member.roles.remove(sortedRanks[currentIndex].role);
-                if (!member.roles.cache.has(newRank.role)) member.roles.add(newRank.role);
+                if (!member.roles.cache.has(newRank.role)) member.roles.add([newRank.role]);
 
                 await StaffModel.updateOne(
                     { id: member.id, guild: message.guildId },

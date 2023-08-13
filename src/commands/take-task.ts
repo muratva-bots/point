@@ -1,4 +1,3 @@
-import { TaskFlags } from '@/enums';
 import { IGuildTask, IRank, PointClass, StaffModel } from '@/models';
 import {
     ActionRowBuilder,
@@ -12,7 +11,7 @@ import {
 } from 'discord.js';
 
 const Command: Point.ICommand = {
-    usages: ['göreval', 'gorev-al', 'görev-al'],
+    usages: ['göreval', 'gorev-al', 'görev-al', 'algörev', 'al-görev', 'taskal', 'task-al', 'al-task', 'altask'],
     checkPermission: ({ message, guildData }) => {
         const minStaffRole = message.guild.roles.cache.get(guildData.minStaffRole);
         return minStaffRole && message.member.roles.highest.position >= minStaffRole.position;

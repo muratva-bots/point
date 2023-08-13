@@ -22,13 +22,13 @@ const Command: Point.ICommand = {
             (await client.utils.getMember(message.guild, args[0])) ||
             (message.reference ? (await message.fetchReference()).member : message.member);
         const document = await StaffModel.findOne({ id: member.id, guild: message.guildId });
-        if (!document || document.staffTakes.length) {
+        if (!document || !document.taggeds.length) {
             client.utils.sendTimedMessage(message, 'Veri bulunmuyor.');
             return;
         }
 
         let page = 1;
-        const totalData = Math.ceil(document.staffTakes.length / 5);
+        const totalData = Math.ceil(document.taggeds.length / 5);
         const embed = new EmbedBuilder({ color: client.utils.getRandomColor() });
         const mappedDatas = document.taggeds.map((s) => {
             const takedMember = message.guild.members.cache.get(s.user);
@@ -49,10 +49,10 @@ const Command: Point.ICommand = {
 
         const question = await message.channel.send({
             embeds: [embed.setDescription(mappedDatas.slice(0, 5).join("\n\n"))],
-            components: document.staffTakes.length > 5 ? [client.utils.paginationButtons(page, totalData)] : [],
+            components: document.taggeds.length > 5 ? [client.utils.paginationButtons(page, totalData)] : [],
         });
 
-        if (5 > document.staffTakes.length) return;
+        if (5 > document.taggeds.length) return;
 
         const filter = (i: ButtonInteraction) => i.user.id === message.author.id && i.isButton();
         const collector = question.createMessageComponentCollector({

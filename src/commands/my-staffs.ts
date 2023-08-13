@@ -51,7 +51,7 @@ const Command: Point.ICommand = {
 
         const question = await message.channel.send({
             embeds: [embed.setDescription(mappedDatas.slice(0, 5).join("\n\n"))],
-            components: [client.utils.paginationButtons(page, totalData)],
+            components: document.staffTakes.length > 5 ? [client.utils.paginationButtons(page, totalData)] : [],
         });
 
         if (5 > document.staffTakes.length) return;

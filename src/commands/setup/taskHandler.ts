@@ -145,7 +145,7 @@ export async function taskHandler(client: Client, message: Message, guildData: P
 
             await GuildModel.updateOne(
                 { id: message.guildId },
-                { $set: { 'point.ranks': guildData.responsibilityChannel } },
+                { $set: { 'point.responsibilityChannels': guildData.responsibilityChannels } },
             );
 
             i.reply({

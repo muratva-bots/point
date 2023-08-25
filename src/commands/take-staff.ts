@@ -1,5 +1,5 @@
 import { StaffTakeFlags, TaskFlags } from '@/enums';
-import { StaffModel } from '@/models';
+import { StaffModel, UserStatModel } from '@/models';
 import {
     ActionRowBuilder,
     ButtonBuilder,
@@ -105,6 +105,18 @@ const Command: Point.ICommand = {
             });
             if (collected) {
                 const newRank = sortedRanks[currentIndex + (collected.customId === 'up' ? 1 : -1)];
+                const newRole = message.guild.roles.cache.get(newRank.role);
+                if (!newRole) return;
+
+                if (newRole.position >= message.member.roles.highest.position) {
+                    collected.deferUpdate();
+                    question.edit({
+                        embeds: [embed.setDescription("Belirttiğin rolü veremezsin.")],
+                        components: []
+                    });
+                    return;
+                }
+
                 if (!member.roles.cache.has(sortedRanks[currentIndex].role)) member.roles.remove(sortedRanks[currentIndex].role);
                 if (!member.roles.cache.has(newRank.role)) member.roles.add([newRank.role]);
 
@@ -143,9 +155,8 @@ const Command: Point.ICommand = {
 
                 const defaultMessage = `${roleMention(sortedRanks[currentIndex].role)} ${inlineCode(
                     sortedRanks[currentIndex].role,
-                )} rolünden ${roleMention(newRank.role)} (${inlineCode(newRank.role)}) rolüne ${
-                    collected.customId === 'up' ? 'yükseltildi' : 'düşürüldü'
-                }`;
+                )} rolünden ${roleMention(newRank.role)} (${inlineCode(newRank.role)}) rolüne ${collected.customId === 'up' ? 'yükseltildi' : 'düşürüldü'
+                    }`;
 
                 question.edit({
                     embeds: [
@@ -162,9 +173,8 @@ const Command: Point.ICommand = {
                         embeds: [
                             new EmbedBuilder({
                                 color: client.utils.getRandomColor(),
-                                description: `${member} (${inlineCode(member.id)}) adlı kullanıcı ${message.author} (${
-                                    message.author.id
-                                }) tarafından ${defaultMessage}!`,
+                                description: `${member} (${inlineCode(member.id)}) adlı kullanıcı ${message.author} (${message.author.id
+                                    }) tarafından ${defaultMessage}!`,
                             }),
                         ],
                     });
@@ -203,30 +213,29 @@ const Command: Point.ICommand = {
                         [
                             staffDocument && staffDocument.oldRoles.length
                                 ? ({
-                                      name: 'Eski Rolleri:',
-                                      value: staffDocument.oldRoles
-                                          .map((o) =>
-                                              [
-                                                  `Yetkili: ${
-                                                      o.admin === '?'
-                                                          ? 'Bilinmiyor.'
-                                                          : `${userMention(o.admin)} (${inlineCode(o.admin)})`
-                                                  }`,
-                                                  `İşlem: ${titles[o.type]}`,
-                                                  `Rol: ${roleMention(o.role)} (${inlineCode(o.role)})`,
-                                                  `Yetkiye Başlama: ${time(
-                                                      Math.floor(o.startTimestamp / 1000),
-                                                      'D',
-                                                  )} (${time(Math.floor(o.startTimestamp / 1000), 'R')})`,
-                                                  o.finishTimestamp ? `Yetki Bitiş: ${time(
-                                                      Math.floor(o.finishTimestamp / 1000),
-                                                      'D',
-                                                  )} (${time(Math.floor(o.finishTimestamp / 1000), 'R')})` : undefined,
-                                              ].filter(Boolean).join('\n'),
-                                          )
-                                          .join('\n\n'),
-                                      inline: false,
-                                  } as EmbedField)
+                                    name: 'Eski Rolleri:',
+                                    value: staffDocument.oldRoles
+                                        .map((o) =>
+                                            [
+                                                `Yetkili: ${o.admin === '?'
+                                                    ? 'Bilinmiyor.'
+                                                    : `${userMention(o.admin)} (${inlineCode(o.admin)})`
+                                                }`,
+                                                `İşlem: ${titles[o.type]}`,
+                                                `Rol: ${roleMention(o.role)} (${inlineCode(o.role)})`,
+                                                `Yetkiye Başlama: ${time(
+                                                    Math.floor(o.startTimestamp / 1000),
+                                                    'D',
+                                                )} (${time(Math.floor(o.startTimestamp / 1000), 'R')})`,
+                                                o.finishTimestamp ? `Yetki Bitiş: ${time(
+                                                    Math.floor(o.finishTimestamp / 1000),
+                                                    'D',
+                                                )} (${time(Math.floor(o.finishTimestamp / 1000), 'R')})` : undefined,
+                                            ].filter(Boolean).join('\n'),
+                                        )
+                                        .join('\n\n'),
+                                    inline: false,
+                                } as EmbedField)
                                 : undefined,
                         ].filter(Boolean),
                     ),
@@ -257,19 +266,27 @@ const Command: Point.ICommand = {
                 return;
             }
 
-            const authorDocument = await StaffModel.findOneAndUpdate(
+            await UserStatModel.findOneAndUpdate(
                 { id: message.author.id, guild: message.guildId },
                 { $push: { staffTakes: { user: member.id, time: now, role: sortedRanks[0].role } } },
                 { upsert: true, setDefaultsOnInsert: true },
             );
 
-            const task = authorDocument.tasks.find((t) => t.type === TaskFlags.Staff);
-            if (task) {
-                task.currentCount = task.currentCount + 1;
-                if (task.currentCount >= task.count) task.currentCount = task.count;
-                task.completed = task.currentCount >= task.count;
-                authorDocument.markModified('tasks');
-                await authorDocument.save();
+            if (client.utils.checkStaff(message.member, guildData)) {
+                const authorDocument = await StaffModel.findOneAndUpdate(
+                    { id: message.author.id, guild: message.guildId },
+                    { $inc: { staffTakePoints: guildData.staffTakePoints } },
+                    { upsert: true, setDefaultsOnInsert: true },
+                );
+
+                const task = authorDocument.tasks.find((t) => t.type === TaskFlags.Staff);
+                if (task) {
+                    task.currentCount = task.currentCount + 1;
+                    if (task.currentCount >= task.count) task.currentCount = task.count;
+                    task.completed = task.currentCount >= task.count;
+                    authorDocument.markModified('tasks');
+                    await authorDocument.save();
+                }
             }
 
             await StaffModel.updateOne(
@@ -324,9 +341,8 @@ const Command: Point.ICommand = {
                     embeds: [
                         new EmbedBuilder({
                             color: client.utils.getRandomColor(),
-                            description: `${member} (${inlineCode(member.id)}) adlı kullanıcı ${message.author} (${
-                                message.author.id
-                            }) tarafından yetkiye başlatıldı!`,
+                            description: `${member} (${inlineCode(member.id)}) adlı kullanıcı ${message.author} (${message.author.id
+                                }) tarafından yetkiye başlatıldı!`,
                         }),
                     ],
                 });

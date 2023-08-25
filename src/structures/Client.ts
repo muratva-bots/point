@@ -19,7 +19,7 @@ export class Client extends Core {
             intents: Object.keys(GatewayIntentBits).map((intent) => GatewayIntentBits[intent]),
             presence: {
                 activities: [{ name: config.STATUS, type: ActivityType.Watching }],
-            },
+            }
         });
     }
 

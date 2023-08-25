@@ -1,6 +1,7 @@
 import { staffControl } from '@/crons';
 import { GuildModel, GuildClass, StaffModel } from '@/models';
-import { Events } from 'discord.js';
+import { addVoiceStat } from '@/structures';
+import { Events, VoiceChannel } from 'discord.js';
 
 const Ready: Point.IEvent<Events.ClientReady> = {
     name: Events.ClientReady,
@@ -55,6 +56,29 @@ const Ready: Point.IEvent<Events.ClientReady> = {
             .forEach((m) =>
                 client.voices.set(`${guild.id}-${m.id}`, { channelId: m.voice.channelId, joinedTimestamp: now }),
             );
+
+
+        setInterval(() => {
+            const guildData = client.servers.get(guild.id);
+            if (!guildData) return;
+
+            client.voices.forEach(async (v, k) => {
+                const channel = guild.channels.cache.get(v.channelId);
+                if (!channel) return;
+
+                const diff = now - v.joinedTimestamp;
+                if (!diff) return;
+
+                const member = await client.utils.getMember(guild, k);
+                if (!member) return;
+
+                client.voices.set(k, {
+                    channelId: v.channelId,
+                    joinedTimestamp: now,
+                });
+                if (!member.voice.mute) addVoiceStat(client, member, channel as VoiceChannel, diff, guildData);
+            });
+        }, 1000 * 60);
 
         const guildEventEmitter = GuildModel.watch([{ $match: { 'fullDocument.id': guild.id } }], {
             fullDocument: 'updateLookup',

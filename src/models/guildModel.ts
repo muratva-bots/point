@@ -47,6 +47,8 @@ export class PointClass {
     noMute: boolean;
     eventFinishTimestamp: number;
     responsibilityChannel: string;
+    staffTakePoints: number;
+    taggedPoints: number;
 }
 
 @modelOptions({ options: { customName: 'Guilds', allowMixed: 0 } })
@@ -85,9 +87,45 @@ export class GuildClass {
             meetingPoint: 500,
             noMute: true,
             eventFinishTimestamp: Date.now(),
+            staffTakePoints: 70,
+            taggedPoints: 70
         },
     })
     public point: PointClass;
+
+    @prop({
+        type: Object,
+        default: {
+            removeOldRank: false,
+            dailyPublic: 0,
+            lastPublic: 0,
+            dailyStream: 0,
+            lastStream: 0,
+            dailyCam: 0,
+            lastCam: 0,
+            dailyStreamOpen: 0,
+            lastStreamOpen: 0,
+            dailyCamOpen: 0,
+            lastCamOpen: 0,
+            dailyGeneral: 0,
+            lastGeneral: 0,
+            dailyMessage: 0,
+            lastMessage: 0,
+            dailyAfk: 0,
+            lastAfk: 0,
+            dailyJoin: 0,
+            lastJoin: 0,
+            dailyLeave: 0,
+            lastLeave: 0,
+            camChannels: [],
+            dailyVoice: 0,
+            lastVoice: 0,
+            lastDay: new Date().setHours(0, 0, 0, 0),
+            days: 1,
+            owneredStreams: []
+        },
+    })
+    public stat: object;
 }
 
 export const GuildModel = getModelForClass(GuildClass);

@@ -8,6 +8,22 @@ export const SETTINGS = [
         isNumber: false,
     },
     {
+        name: 'Yetkili Alma Puanı',
+        value: 'staffTakePoints',
+        description: 'Yetkili alınca eklenecek puan.',
+        type: 'string',
+        isMultiple: false,
+        isNumber: true,
+    },
+    {
+        name: 'Taglı Alma Puan',
+        value: 'taggedPoints',
+        description: 'Taglı alınca eklenecek puan.',
+        type: 'string',
+        isMultiple: false,
+        isNumber: true,
+    },
+    {
         name: 'En Alt Yetkili Rolü',
         value: 'minStaffRole',
         description: 'En alt yetkili rollerini ayarlarsınız.',

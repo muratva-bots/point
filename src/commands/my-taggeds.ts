@@ -1,4 +1,4 @@
-import { StaffModel } from '@/models';
+import { UserStatModel } from '@/models';
 import {
     ActionRowBuilder,
     ButtonBuilder,
@@ -21,7 +21,7 @@ const Command: Point.ICommand = {
         const member =
             (await client.utils.getMember(message.guild, args[0])) ||
             (message.reference ? (await message.fetchReference()).member : message.member);
-        const document = await StaffModel.findOne({ id: member.id, guild: message.guildId });
+        const document = await UserStatModel.findOne({ id: member.id, guild: message.guildId }).select("taggeds");
         if (!document || !document.taggeds.length) {
             client.utils.sendTimedMessage(message, 'Veri bulunmuyor.');
             return;

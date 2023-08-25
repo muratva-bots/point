@@ -1,5 +1,5 @@
 import { TaskFlags } from '@/enums';
-import { StaffModel } from '@/models';
+import { StaffModel, UserStatModel } from '@/models';
 import {
     ActionRowBuilder,
     ButtonBuilder,
@@ -87,19 +87,27 @@ const Command: Point.ICommand = {
                 return;
             }
 
-            const authorDocument = await StaffModel.findOneAndUpdate(
+            await UserStatModel.findOneAndUpdate(
                 { id: message.author.id, guild: message.guildId },
                 { $push: { taggeds: { user: member.id, time: Date.now() } } },
                 { new: true, upsert: true, setDefaultsOnInsert: true },
             );
 
-            const task = authorDocument.tasks.find((t) => t.type === TaskFlags.Tagged);
-            if (task) {
-                task.currentCount = task.currentCount + 1;
-                if (task.currentCount >= task.count) task.currentCount = task.count;
-                task.completed = task.currentCount >= task.count;
-                authorDocument.markModified('tasks');
-                await authorDocument.save();
+            if (client.utils.checkStaff(message.member, guildData)) {
+                const authorDocument = await StaffModel.findOneAndUpdate(
+                    { id: message.author.id, guild: message.guildId },
+                    { $inc: { taggeds: guildData.taggedPoints } },
+                    { new: true, upsert: true, setDefaultsOnInsert: true },
+                );
+    
+                const task = authorDocument.tasks.find((t) => t.type === TaskFlags.Tagged);
+                if (task) {
+                    task.currentCount = task.currentCount + 1;
+                    if (task.currentCount >= task.count) task.currentCount = task.count;
+                    task.completed = task.currentCount >= task.count;
+                    authorDocument.markModified('tasks');
+                    await authorDocument.save();
+                }    
             }
 
             question.edit({

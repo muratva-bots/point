@@ -9,32 +9,12 @@ export interface IStaffTask {
     completed: boolean;
 }
 
-interface IProblemResolve {
-    reason: string;
-    channelId: string;
-    createdTimestamp: number;
-    endTimestamp: number;
-    insideRoom: string[];
-    isResuming: boolean;
-}
-
 interface IOldRole {
     startTimestamp: number;
     finishTimestamp: number;
     admin: string;
     role: string;
     type: StaffTakeFlags;
-}
-
-interface IStaffTake {
-    user: string;
-    time: number;
-    role: string;
-}
-
-interface ITagged {
-    user: string;
-    time: number;
 }
 
 interface IBonusLog {
@@ -92,8 +72,8 @@ export class StaffClass {
     @prop({ type: () => [String], default: [] })
     public inviteUsers: string[];
 
-    @prop({ type: () => [Object], default: [] })
-    public taggeds: ITagged[];
+    @prop({ type: () => Number, default: 0 })
+    public taggedPoints: number;
 
     @prop({ type: () => Number, default: 0 })
     public messagePoints: number;
@@ -107,11 +87,11 @@ export class StaffClass {
     @prop({ type: () => Boolean, default: false })
     public inPersonalMeeting: boolean;
 
-    @prop({ type: () => [Object], default: [] })
-    public problemResolves: IProblemResolve[];
+    @prop({ type: () => Number, default: 0 })
+    public problemResolvePoints: 0;
 
-    @prop({ type: () => [Object], default: [] })
-    public staffTakes: IStaffTake[];
+    @prop({ type: () => Number, default: 0 })
+    public staffTakePoints: number;
 
     @prop({ type: () => [Object], default: [] })
     public oldRoles: IOldRole[];

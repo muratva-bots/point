@@ -33,19 +33,6 @@ const Command: Point.ICommand = {
             return;
         }
 
-        const voiceCache = client.voices.get(`${message.guildId}-${member.id}`);
-        if (voiceCache) {
-            const voiceChannel = message.guild.channels.cache.get(voiceCache.channelId) as VoiceChannel;
-            if (voiceChannel) {
-                const now = Date.now();
-                await addVoiceStat(client, member, voiceChannel, now - voiceCache.joinedTimestamp, guildData);
-                client.voices.set(`${message.guildId}-${member.id}`, {
-                    channelId: voiceCache.channelId,
-                    joinedTimestamp: now
-                });
-            }
-        }
-
         const document = await StaffModel.findOne({ id: member.id, guild: message.guildId });
         if (!document) {
             client.utils.sendTimedMessage(message, 'Belirttiğin kullanıcının verisi bulunmuyor.');

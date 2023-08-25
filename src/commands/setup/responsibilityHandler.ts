@@ -72,6 +72,7 @@ export async function responsibilityChannelHandler(
                         new ChannelSelectMenuBuilder({
                             custom_id: 'disabledChannels',
                             placeholder: 'Kanal ara..',
+                            max_values: 25,
                             channel_types: [ChannelType.GuildVoice],
                         }),
                     ],
@@ -100,67 +101,88 @@ export async function responsibilityChannelHandler(
                         ? disabledChannelsCollected.values
                         : [];
 
-                    const pointRow = new ActionRowBuilder<TextInputBuilder>({
+                    const channelRow = new ActionRowBuilder<RoleSelectMenuBuilder>({
                         components: [
-                            new TextInputBuilder({
-                                custom_id: 'point',
-                                placeholder: '10000',
-                                label: 'Puan:',
-                                style: TextInputStyle.Short,
-                                required: true,
+                            new ChannelSelectMenuBuilder({
+                                custom_id: 'disabledChannels',
+                                placeholder: 'Kategori ara..',
+                                channel_types: [ChannelType.GuildCategory],
                             }),
                         ],
                     });
 
-                    const modal = new ModalBuilder({
-                        custom_id: 'modal',
-                        title: 'Kanala Özel Rol Ayarları',
-                        components: [pointRow],
+                    i.editReply({
+                        content: 'Puan verilecek kategoriyi seçin.',
+                        components: [channelRow],
                     });
 
-                    await disabledChannelsCollected.showModal(modal);
-
-                    const modalCollected = await disabledChannelsCollected.awaitModalSubmit({
-                        time: 1000 * 60 * 3,
+                    const channelCollected = await interactionMessage.awaitMessageComponent({
+                        time: 1000 * 60 * 10,
+                        componentType: ComponentType.ChannelSelect
                     });
-                    if (modalCollected) {
-                        modalCollected.deferUpdate();
+                    if (channelCollected) {
+                        const pointRow = new ActionRowBuilder<TextInputBuilder>({
+                            components: [
+                                new TextInputBuilder({
+                                    custom_id: 'point',
+                                    placeholder: '10000',
+                                    label: 'Puan:',
+                                    style: TextInputStyle.Short,
+                                    required: true,
+                                }),
+                            ],
+                        });
 
-                        const point = Number(modalCollected.fields.getTextInputValue('point'));
-                        if (!point) {
+                        const modal = new ModalBuilder({
+                            custom_id: 'modal',
+                            title: 'Kanala Özel Rol Ayarları',
+                            components: [pointRow],
+                        });
+
+                        await disabledChannelsCollected.showModal(modal);
+
+                        const modalCollected = await disabledChannelsCollected.awaitModalSubmit({
+                            time: 1000 * 60 * 3,
+                        });
+                        if (modalCollected) {
+                            modalCollected.deferUpdate();
+
+                            const point = Number(modalCollected.fields.getTextInputValue('point'));
+                            if (!point) {
+                                i.editReply({
+                                    content: 'Puan sayı olmak zorundadır.',
+                                    components: [],
+                                });
+                                return;
+                            }
+
+                            guildData.responsibilityChannels = [
+                                ...(guildData.responsibilityChannels || []),
+                                {
+                                    point: point,
+                                    role: roleCollected.values[0],
+                                    disabledChannels: disabledChannels,
+                                    id: channelCollected.values[0],
+                                },
+                            ];
+
+                            await GuildModel.updateOne(
+                                { id: question.guildId },
+                                { $set: { 'point.responsibilityChannels': guildData.responsibilityChannels } },
+                                { upsert: true, setDefaultsOnInsert: true },
+                            );
+
+                            question.edit({
+                                components: createRow(question, guildData.responsibilityChannels),
+                            });
+
                             i.editReply({
-                                content: 'Puan sayı olmak zorundadır.',
+                                content: `${roleMention(roleCollected.values[0])} (${inlineCode(
+                                    roleCollected.values[0],
+                                )}) rolü ayarlandı.`,
                                 components: [],
                             });
-                            return;
-                        }
-
-                        guildData.responsibilityChannels = [
-                            ...(guildData.responsibilityChannels || []),
-                            {
-                                point: point,
-                                role: roleCollected.values[0],
-                                disabledChannels: disabledChannels,
-                                id: roleCollected.values[0],
-                            },
-                        ];
-
-                        await GuildModel.updateOne(
-                            { id: question.guildId },
-                            { $set: { 'point.responsibilityChannels': guildData.responsibilityChannels } },
-                            { upsert: true, setDefaultsOnInsert: true },
-                        );
-
-                        question.edit({
-                            components: createRow(question, guildData.responsibilityChannels),
-                        });
-
-                        i.editReply({
-                            content: `${roleMention(roleCollected.values[0])} (${inlineCode(
-                                roleCollected.values[0],
-                            )}) rolü ayarlandı.`,
-                            components: [],
-                        });
+                        } else i.deleteReply();
                     } else i.deleteReply();
                 } else i.deleteReply();
             } else i.deleteReply();
@@ -218,12 +240,11 @@ function createRow(message: Message, responsibilityChannels: IResponsibilityChan
                     max_values: datas.length === 0 ? 1 : datas.length,
                     options: datas.length
                         ? datas.map((r) => ({
-                              label: message.guild.roles.cache.get(r.role).name,
-                              value: r.role,
-                              description: `${r.point} puan - ${
-                                  message.guild.channels.cache.get(r.id)?.name || 'silinmiş kanal'
-                              }`,
-                          }))
+                            label: message.guild.roles.cache.get(r.role).name,
+                            value: r.role,
+                            description: `${r.point} puan - ${message.guild.channels.cache.get(r.id)?.name || 'silinmiş kanal'
+                                }`,
+                        }))
                         : [{ label: 'test', value: 'a' }],
                 }),
             ],

@@ -34,7 +34,7 @@ const Command: Point.ICommand = {
             return;
         }
 
-        if (!guildData.ranks.length) {
+        if (!(guildData.ranks || []).length) {
             message.channel.send('Rol ayarları yapılmamış');
             return;
         }
@@ -136,8 +136,8 @@ const Command: Point.ICommand = {
                             inGeneralMeeting: false,
                             inPersonalMeeting: false,
                             roleStartTime: now,
-                            staffTakes: [],
-                            problemResolves: [],
+                            staffTakePoints: 0,
+                            problemResolvePoints: 0,
                             tasks: [],
                             bonusLogs: [],
                         },
@@ -305,8 +305,8 @@ const Command: Point.ICommand = {
                         inGeneralMeeting: false,
                         inPersonalMeeting: false,
                         roleStartTime: now,
-                        staffTakes: [],
-                        problemResolves: [],
+                        staffTakePoints: 0,
+                        problemResolvePoints: 0,
                         tasks: [],
                     },
                     $push: {

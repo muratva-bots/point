@@ -131,7 +131,7 @@ export class UserStatClass {
     @prop({ type: () => [Object], default: [] })
     public staffTakes: IStaffTake[];
 
-    @prop({ type: () => Object, default: [] })
+    @prop({ type: () => Array, default: [] })
     public registers!: IRegister[];
 
     @prop({ type: () => Object, default: [] })

@@ -1,5 +1,5 @@
 import { staffControl } from '@/crons';
-import { GuildModel, GuildClass, StaffModel } from '@/models';
+import { GuildModel, GuildClass } from '@/models';
 import { addVoiceStat } from '@/structures';
 import { Events, VoiceChannel } from 'discord.js';
 
@@ -31,24 +31,6 @@ const Ready: Point.IEvent<Events.ClientReady> = {
         await client.application.fetch();
         const document = (await GuildModel.findOne({ id: guild.id })) || (await GuildModel.create({ id: guild.id }));
         client.servers.set(guild.id, { ...document.point });
-
-        const unTaggedMembers = guild.members.cache
-            .filter(
-                (m) =>
-                    !(document.point.tags || []).some((t) =>
-                        m.user.displayName.toLowerCase().includes(t.toLowerCase()),
-                    ),
-            )
-            .map((m) => m.id);
-        await StaffModel.updateMany(
-            {
-                guild: guild.id,
-                $or: [{ 'staffTakes.user': unTaggedMembers }, { 'taggeds.user': { $in: unTaggedMembers } }],
-            },
-            {
-                $pull: { 'staffTakes.user': { $in: unTaggedMembers }, 'taggeds.user': { $in: unTaggedMembers } },
-            },
-        );
 
         const now = Date.now();
         guild.members.cache

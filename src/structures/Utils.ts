@@ -137,8 +137,8 @@ export class Utils {
                     inGeneralMeeting: false,
                     inPersonalMeeting: false,
                     roleStartTime: now,
-                    staffTakes: [],
-                    problemResolves: [],
+                    staffTakePoints: 0,
+                    problemResolvePoints: 0,
                     tasks: [],
                 },
             },
@@ -147,6 +147,7 @@ export class Utils {
     }
 
     pointsRating(guild: Guild, rank: IRank) {
+        console.log(rank)
         const rankHalfPoint = Math.floor(rank.point / 2);
 
         const role = guild.roles.cache.get(rank.role);

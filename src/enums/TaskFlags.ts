@@ -4,4 +4,5 @@ export enum TaskFlags {
     Tagged,
     Invite,
     Staff,
+    Register
 }

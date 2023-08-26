@@ -1,5 +1,4 @@
-import { TaskFlags } from '@/enums';
-import { StaffModel } from '@/models';
+import { StaffModel, UserStatModel } from '@/models';
 import { Events } from 'discord.js';
 
 const UserUpdate: Point.IEvent<Events.UserUpdate> = {
@@ -16,37 +15,16 @@ const UserUpdate: Point.IEvent<Events.UserUpdate> = {
         );
 
         if (oldHasTag && !newHasTag) {
-            const staffDocuments = await StaffModel.find(
-                {
-                    guild: client.config.GUILD_ID,
-                    $or: [{ 'staffTakes.user': newUser.id }, { taggeds: { $in: [newUser.id] } }],
-                },
-                { $pull: { staffTakes: { user: newUser.id }, taggeds: newUser.id } },
-                { upsert: true, setDefaultsOnInsert: true },
+            await UserStatModel.updateOne(
+                { "staffTake.user": newUser.id, guild: client.config.GUILD_ID },
+                { $pull: { "staffTakes.user": newUser.id } },
+            )
+
+            await UserStatModel.updateOne(
+                { "taggeds.user": newUser.id, guild: client.config.GUILD_ID },
+                { $pull: { "taggeds.user": newUser.id } },
             );
-
-            for (const staffDocument of staffDocuments) {
-                if (staffDocument.staffTakes.some((t) => t.user === newUser.id)) {
-                    const task = staffDocument.tasks.find((t) => t.type === TaskFlags.Staff);
-                    if (task) {
-                        if (task.currentCount > 0) task.currentCount = task.currentCount - 1;
-                        task.completed = task.currentCount >= task.count;
-                        staffDocument.markModified('tasks');
-                    }
-                }
-
-                if (staffDocument.taggeds.some((t) => t.user === newUser.id)) {
-                    const task = staffDocument.tasks.find((t) => t.type === TaskFlags.Tagged);
-                    if (task) {
-                        if (task.currentCount > 0) task.currentCount = task.currentCount - 1;
-                        task.completed = task.currentCount >= task.count;
-                        staffDocument.markModified('tasks');
-                    }
-                }
-
-                staffDocument.save();
-            }
-
+            
             const document = await StaffModel.findOne({ id: newUser.id, guild: client.config.GUILD_ID });
             if (document && document.oldRoles.length) {
                 const currentRole = document.oldRoles[document.oldRoles.length - 1];

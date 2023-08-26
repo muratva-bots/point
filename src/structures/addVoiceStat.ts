@@ -27,7 +27,7 @@ export async function addVoiceStat(
             member.roles.cache.has(c.role) &&
             !c.disabledChannels.includes(channel.id),
     );
-    if (channel) {
+    if (pointChannel) {
         key = 'responsibilityPoints';
         point = minutes * pointChannel.point;
     } else if (channel.parentId === guildData.publicCategory && channel.id === guildData.afkRoom) {

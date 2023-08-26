@@ -17,7 +17,6 @@ import {
     StringSelectMenuInteraction,
     TextInputBuilder,
     TextInputStyle,
-    bold,
     inlineCode,
     roleMention,
 } from 'discord.js';
@@ -89,6 +88,7 @@ export async function taskHandler(client: Client, message: Message, guildData: P
                                 { label: 'Mesaj', value: 'message' },
                                 { label: 'Taglı', value: 'tagged' },
                                 { label: 'Yetkili', value: 'staff' },
+                                { label: 'Kayıt', value: 'register' },
                             ],
                         }),
                     ],
@@ -222,6 +222,7 @@ const types = {
     invite: TaskFlags.Invite,
     staff: TaskFlags.Staff,
     tagged: TaskFlags.Tagged,
+    register: TaskFlags.Register
 };
 
 async function createModal(

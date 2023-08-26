@@ -164,7 +164,7 @@ export async function rankHandler(client: Client, message: Message, guildData: P
                         }
 
                         const taskCount = Number(modalCollected.fields.getTextInputValue('task-count'));
-                        if (!taskCount) {
+                        if (!taskCount && taskCount !== 0) {
                             i.editReply({
                                 content: 'Görev sayısı sayı olmak zorundadır.',
                                 components: [],

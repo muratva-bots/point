@@ -97,6 +97,8 @@ export async function responsibilityChannelHandler(
                     time: 1000 * 60 * 10,
                 });
                 if (disabledChannelsCollected) {
+                    disabledChannelsCollected.deferUpdate();
+
                     const disabledChannels = disabledChannelsCollected.isStringSelectMenu()
                         ? disabledChannelsCollected.values
                         : [];
@@ -104,7 +106,7 @@ export async function responsibilityChannelHandler(
                     const channelRow = new ActionRowBuilder<RoleSelectMenuBuilder>({
                         components: [
                             new ChannelSelectMenuBuilder({
-                                custom_id: 'disabledChannels',
+                                custom_id: 'channel',
                                 placeholder: 'Kategori ara..',
                                 channel_types: [ChannelType.GuildCategory],
                             }),
@@ -139,9 +141,9 @@ export async function responsibilityChannelHandler(
                             components: [pointRow],
                         });
 
-                        await disabledChannelsCollected.showModal(modal);
+                        await channelCollected.showModal(modal);
 
-                        const modalCollected = await disabledChannelsCollected.awaitModalSubmit({
+                        const modalCollected = await channelCollected.awaitModalSubmit({
                             time: 1000 * 60 * 3,
                         });
                         if (modalCollected) {

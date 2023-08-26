@@ -49,6 +49,7 @@ export class PointClass {
     responsibilityChannel: string;
     staffTakePoints: number;
     taggedPoints: number;
+    registerPoints: number;
 }
 
 @modelOptions({ options: { customName: 'Guilds', allowMixed: 0 } })
@@ -88,7 +89,8 @@ export class GuildClass {
             noMute: true,
             eventFinishTimestamp: Date.now(),
             staffTakePoints: 70,
-            taggedPoints: 70
+            taggedPoints: 70,
+            registerPoints: 70
         },
     })
     public point: PointClass;

@@ -101,8 +101,8 @@ export function staffControl(client: Client, guild: Guild) {
                 document.inGeneralMeeting = false;
                 document.inPersonalMeeting = false;
                 document.roleStartTime = now;
-                document.staffTakes = [];
-                document.problemResolves = [];
+                document.staffTakePoints = 0;
+                document.problemResolvePoints = 0;
                 document.tasks = [];
                 document.bonusLogs = [];
             }

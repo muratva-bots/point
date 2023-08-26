@@ -16,6 +16,14 @@ export const SETTINGS = [
         isNumber: true,
     },
     {
+        name: 'Kayıt Puanı',
+        value: 'registerPoints',
+        description: 'Kayıt yapınca eklenecek puan.',
+        type: 'string',
+        isMultiple: false,
+        isNumber: true,
+    },
+    {
         name: 'Taglı Alma Puan',
         value: 'taggedPoints',
         description: 'Taglı alınca eklenecek puan.',

@@ -147,7 +147,6 @@ export class Utils {
     }
 
     pointsRating(guild: Guild, rank: IRank) {
-        console.log(rank)
         const rankHalfPoint = Math.floor(rank.point / 2);
 
         const role = guild.roles.cache.get(rank.role);

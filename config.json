@@ -1,6 +1,7 @@
 {
     "TOKEN": "MTE0NDY1NDMwNjQxOTY3MTEwMQ.GewC3b.CdzerI8eeEO15T2PSJuY3q8oiozKnWkhetop-M",
     "GUILD_ID": "1137098903779545101",
+    "BOT_OWNERS: [""],
     "PREFIXES": ["!", "."],
     "MONGO_URL": "mongodb+srv://muratvastark:deneme1234@database.sxbrxge.mongodb.net/viena?retryWrites=true&w=majority",
     "STATUS": "😻"

@@ -96,7 +96,7 @@ export class Utils {
         };
     }
 
-   async checkRank(member: GuildMember, document: StaffClass, guildData: PointClass) {
+      async checkRank(member: GuildMember, document: StaffClass, guildData: PointClass) {
         if (document.pointsRating > document.totalPoints) {
             document.bonusPoints = 0;
             document.messagePoints = 0;
@@ -169,7 +169,7 @@ export class Utils {
         return Math.min(rankHalfPoint + Math.pow(roleMembersCount, 2) + 500 * roleMembersCount + 250, rank.point);
     }
 
-    createBar(current: number, required: number): string {
+       createBar(current: number, required: number): string {
         const percentage = Math.min((100 * current) / required, 100);
         const progress = Math.max(Math.round((percentage / 100) * 4), 0);
         let str = this.getEmoji(percentage > 0 ? 'ilkdolu' : 'ilkbos');

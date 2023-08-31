@@ -24,6 +24,7 @@ const Command: Point.ICommand = {
         return minStaffRole && message.member.roles.highest.position >= minStaffRole.position;
     },
     execute: async ({ client, message, args, guildData }) => {
+        console.log(args)
         const member =
             (await client.utils.getMember(message.guild, args[0])) ||
             (message.reference ? (await message.fetchReference()).member : message.member);
@@ -177,8 +178,8 @@ function getGeneralContent(
                 ? 'Bilinmiyor.'
                 : `${userMention(lastRole.admin)} / ${time(Math.floor(lastRole.startTimestamp / 1000), 'R')}`
         }`,
-        `${inlineCode(`• Değerlendirme Puanı:`)} ${document.allPoints} (${bold(`Min: ${document.pointsRating}`)}) ${
-            document.allPoints > document.pointsRating ? '🟩' : '🟥'
+        `${inlineCode(`• Değerlendirme Puanı:`)} ${document.totalPoints} (${bold(`Min: ${document.pointsRating}`)}) ${
+            document.totalPoints > document.pointsRating ? '🟩' : '🟥'
         }`,
         rank.roleTime
             ? `${inlineCode(`• Yetki Süresi:`)} ${
@@ -205,7 +206,7 @@ function getGeneralContent(
             : undefined,
         `${inlineCode('• İlerleme Durumu:')}\n${client.utils.createBar(complatedCount, needCount)}`,
         `### Puan Bilgileri`,
-        `${inlineCode('• Toplam/Gereken Puan:')} ${bold(`${document.allPoints}/${rank.point}`)}`,
+        `${inlineCode('• Toplam/Gereken Puan:')} ${bold(`${Math.max(document.totalPoints - document.pointsRating, 0)}/${rank.point}`)}`,
         `${inlineCode('• Kayıt Puan:')} ${document.registerPoints}`,
         `${inlineCode('• Davet Puan:')} ${document.inviteUsers.length * guildData.invitePoint}`,
         `${inlineCode('• Public Puan:')} ${document.publicPoints}`,

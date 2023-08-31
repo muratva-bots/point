@@ -160,8 +160,7 @@ export class Utils {
 
     createBar(current: number, required: number): string {
         const percentage = Math.min((100 * current) / required, 100);
-        const progress = Math.round((percentage / 100) * 4);
-
+        const progress = Math.max(Math.round((percentage / 100) * 4), 0);
         let str = this.getEmoji(percentage > 0 ? 'ilkdolu' : 'ilkbos');
         str += this.getEmoji('ortadolu').repeat(progress);
         str += this.getEmoji('ortabos').repeat(4 - progress);

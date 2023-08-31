@@ -96,7 +96,18 @@ export class Utils {
         };
     }
 
-    async checkRank(member: GuildMember, document: StaffClass, guildData: PointClass) {
+   async checkRank(member: GuildMember, document: StaffClass, guildData: PointClass) {
+        if (document.pointsRating > document.totalPoints) {
+            document.bonusPoints = 0;
+            document.messagePoints = 0;
+            document.publicPoints = 0;
+            document.registerPoints = 0;
+            document.responsibilityPoints = 0;
+            document.sleepPoints = 0;
+            document.staffTakePoints = 0;
+            document.problemResolvePoints = 0;
+        }
+
         const { currentRank, newRank } = this.getRank(
             member.roles.cache.map((r) => r.id),
             guildData.ranks,
@@ -106,8 +117,8 @@ export class Utils {
         const now = Date.now();
         if (
             !newRank ||
-            document.pointsRating > document.allPoints ||
-            currentRank.point > document.totalPoints ||
+            document.pointsRating > document.totalPoints ||
+            currentRank.point > (document.totalPoints - document.pointsRating) ||
             (currentRank.roleTime && currentRank.roleTime * (ONE_DAY * 7) > now - document.roleStartTime) ||
             (currentRank.taskCount && currentRank.taskCount > document.tasks.filter((t) => t.completed).length)
         )

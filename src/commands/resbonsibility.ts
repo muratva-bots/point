@@ -1,37 +1,37 @@
 import { GuildModel } from '@/models';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Team } from 'discord.js';
 
 const Command: Point.ICommand = {
     usages: ['sorumluluk'],
-    // checkPermission: ({ client, message }) => {
-    //     const ownerID =
-    //         client.application.owner instanceof Team
-    //             ? (client.application.owner as Team).ownerId
-    //             : client.application.owner.id;
-    //     return ownerID === message.author.id;
-    // },
+    checkPermission: ({ client, message }) => {
+        const ownerID =
+            client.application.owner instanceof Team
+                ? (client.application.owner as Team).ownerId
+                : client.application.owner.id;
+        return ownerID === message.author.id;
+    },
     execute: async ({ client, message, guildData }) => {
-        const tasks = (guildData.tasks || []).filter((t) => t.isGeneral || message.guild.roles.cache.has(t.role));
+        const tasks = (guildData.tasks || []).filter((t) => message.guild.roles.cache.has(t.role));
         if (!tasks.length) {
             client.utils.sendTimedMessage(message, 'Görevler ayarlanmamış.');
             return;
         }
 
         const rows: ActionRowBuilder<ButtonBuilder>[] = [];
-        const tasksChunkArray = client.utils.chunkArray(tasks, 25);
+        const tasksChunkArray = client.utils.chunkArray(tasks, 5);
         for (let i = 0; tasksChunkArray.length > i; i++) {
-            const t = tasksChunkArray[i];
-            rows.push(
-                new ActionRowBuilder<ButtonBuilder>({
-                    components: [
-                        new ButtonBuilder({
-                            custom_id: t.role,
-                            label: message.guild.roles.cache.get(t.role)?.name,
-                            style: ButtonStyle.Primary,
-                        }),
-                    ],
-                }),
-            );
+            const childTasks = tasksChunkArray[Math.floor(i / 25)];
+            const row = new ActionRowBuilder<ButtonBuilder>();
+            for (const childTask of childTasks) {
+                row.addComponents(
+                    new ButtonBuilder({
+                        custom_id: childTask.role,
+                        label: message.guild.roles.cache.get(childTask.role)?.name,
+                        style: ButtonStyle.Primary,
+                    })
+                )
+            }
+            rows.push(row);
         }
 
         guildData.responsibilityChannel = message.channelId;

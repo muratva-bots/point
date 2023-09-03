@@ -7,12 +7,17 @@ import {
     ButtonBuilder,
     ButtonStyle,
     Collection,
+    EmbedBuilder,
     Guild,
     GuildChannel,
     GuildMember,
     Message,
     Snowflake,
+    TextChannel,
     User,
+    bold,
+    inlineCode,
+    roleMention,
     time,
 } from 'discord.js';
 import { EMOJIS } from '@/assets';
@@ -96,7 +101,7 @@ export class Utils {
         };
     }
 
-      async checkRank(member: GuildMember, document: StaffClass, guildData: PointClass) {
+    async checkRank(member: GuildMember, document: StaffClass, guildData: PointClass) {
         if (document.pointsRating > document.totalPoints) {
             document.bonusPoints = 0;
             document.messagePoints = 0;
@@ -131,6 +136,18 @@ export class Utils {
 
         if (member.roles.cache.has(newRank.role)) await member.roles.add(newRank.role);
         if (member.roles.cache.has(currentRank.role)) await member.roles.remove(currentRank.role);
+
+		const logChannel = member.guild.channels.cache.find(c => c.name === 'yetki-atladın-log') as TextChannel;
+			if (logChannel) {
+				await logChannel.send({
+					embeds: [
+						new EmbedBuilder({
+							color: this.getRandomColor(),
+							description: `${member} (${inlineCode(member.id)}) adlı yetkili ${bold(document.totalPoints.toString())} puana ulaştığı için ${roleMention(newRank.role)} rolüne yükseldi.`
+						})
+					]
+				});
+			}
 
         await StaffModel.updateOne(
             { user: member.id, guild: member.guild.id },
@@ -169,7 +186,7 @@ export class Utils {
         return Math.min(rankHalfPoint + Math.pow(roleMembersCount, 2) + 500 * roleMembersCount + 250, rank.point);
     }
 
-       createBar(current: number, required: number): string {
+    createBar(current: number, required: number): string {
         const percentage = Math.min((100 * current) / required, 100);
         const progress = Math.max(Math.round((percentage / 100) * 4), 0);
         let str = this.getEmoji(percentage > 0 ? 'ilkdolu' : 'ilkbos');
@@ -180,15 +197,16 @@ export class Utils {
         return str;
     }
 
-    async checkRegisterTask(document: Document<unknown, any, StaffClass> & StaffClass) {
-        if (document.pointsRating > document.totalPoints) return;
+    async checkTask(document: Document<unknown, any, StaffClass> & StaffClass, channel: GuildChannel, value: number, type: TaskFlags) {
+        if (document.pointsRating > document.allPoints) return;
 
-        const task = document.tasks.find((t) => t.type === TaskFlags.Register);
-        console.log(task)
+        const task = document.tasks.find(
+            (t) => t.type === type && (t.channel === channel.id || t.channel === channel.parentId),
+        );
         if (!task || task.completed) return;
 
         document.markModified('tasks');
-        task.currentCount += 1;
+        task.currentCount += value;
         if (task.currentCount >= task.count) {
             task.currentCount = task.count;
             task.completed = true;

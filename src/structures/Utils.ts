@@ -180,16 +180,15 @@ export class Utils {
         return str;
     }
 
-    async checkTask(document: Document<unknown, any, StaffClass> & StaffClass, channel: GuildChannel, value: number, type: TaskFlags) {
-        if (document.pointsRating > document.allPoints) return;
+    async checkRegisterTask(document: Document<unknown, any, StaffClass> & StaffClass) {
+        if (document.pointsRating > document.totalPoints) return;
 
-        const task = document.tasks.find(
-            (t) => t.type === type && (t.channel === channel.id || t.channel === channel.parentId),
-        );
+        const task = document.tasks.find((t) => t.type === TaskFlags.Register);
+        console.log(task)
         if (!task || task.completed) return;
 
         document.markModified('tasks');
-        task.currentCount += value;
+        task.currentCount += 1;
         if (task.currentCount >= task.count) {
             task.currentCount = task.count;
             task.completed = true;

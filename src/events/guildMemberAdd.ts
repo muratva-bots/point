@@ -30,7 +30,6 @@ const GuildMemberAdd: Point.IEvent<Events.GuildMemberAdd> = {
             });
         }
 
-
         if (1000 * 60 * 60 * 24 * 7 >= Date.now() - member.user.createdTimestamp) return;
 
         const inviteMember = await client.utils.getMember(member.guild, invite.inviter.id);

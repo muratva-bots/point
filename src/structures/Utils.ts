@@ -137,17 +137,17 @@ export class Utils {
         if (member.roles.cache.has(newRank.role)) await member.roles.add(newRank.role);
         if (member.roles.cache.has(currentRank.role)) await member.roles.remove(currentRank.role);
 
-		const logChannel = member.guild.channels.cache.find(c => c.name === 'yetki-atladın-log') as TextChannel;
-			if (logChannel) {
-				await logChannel.send({
-					embeds: [
-						new EmbedBuilder({
-							color: this.getRandomColor(),
-							description: `${member} (${inlineCode(member.id)}) adlı yetkili ${bold(document.totalPoints.toString())} puana ulaştığı için ${roleMention(newRank.role)} rolüne yükseldi.`
-						})
-					]
-				});
-			}
+        const logChannel = member.guild.channels.cache.find(c => c.name === 'yetki-atladın-log') as TextChannel;
+        if (logChannel) {
+            await logChannel.send({
+                embeds: [
+                    new EmbedBuilder({
+                        color: this.getRandomColor(),
+                        description: `${member} (${inlineCode(member.id)}) adlı yetkili ${bold(document.totalPoints.toString())} puana ulaştığı için ${roleMention(newRank.role)} rolüne yükseldi.`
+                    })
+                ]
+            });
+        }
 
         await StaffModel.updateOne(
             { user: member.id, guild: member.guild.id },

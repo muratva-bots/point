@@ -105,11 +105,13 @@ export async function taskHandler(client: Client, message: Message, guildData: P
                 });
                 if (typeCollected) {
                     if (typeCollected.values[0] === 'voice') {
+                        typeCollected.deferUpdate();
+
                         const channelRow = new ActionRowBuilder<ChannelSelectMenuBuilder>({
                             components: [
                                 new ChannelSelectMenuBuilder({
                                     custom_id: "channel",
-                                    channel_types: [ChannelType.GuildVoice],
+                                    channel_types: [ChannelType.GuildVoice, ChannelType.GuildCategory],
                                 }),
                             ],
                         });
@@ -126,7 +128,7 @@ export async function taskHandler(client: Client, message: Message, guildData: P
                         if (channelCollected)
                             createModal(
                                 i,
-                                typeCollected,
+                                channelCollected,
                                 roleCollected as any,
                                 typeCollected,
                                 guildData,
@@ -251,7 +253,7 @@ async function createModal(
             new TextInputBuilder({
                 custom_id: 'count',
                 placeholder: '10',
-                label: 'Sayı:',
+                label: typeCollected.values[0] === "voice" ? 'Saat:' : 'Sayı:',
                 style: TextInputStyle.Short,
                 required: true,
             }),
@@ -297,7 +299,7 @@ async function createModal(
             ...(guildData.tasks || []),
             {
                 channel: channel,
-                count: count,
+                count: typeCollected.values[0] === "voice" ? 1000 * 60 * count : count,
                 type: types[typeCollected.values[0]],
                 title: modalCollected.fields.getTextInputValue('title'),
                 role: roleCollected.isButton() ? undefined : roleCollected.values[0],

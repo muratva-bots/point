@@ -1,4 +1,3 @@
-import { Team } from 'discord.js';
 import mainHandler from './mainHandler';
 
 const Command: Point.ICommand = {

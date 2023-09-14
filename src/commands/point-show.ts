@@ -24,7 +24,6 @@ const Command: Point.ICommand = {
         return minStaffRole && message.member.roles.highest.position >= minStaffRole.position;
     },
     execute: async ({ client, message, args, guildData }) => {
-        console.log(args)
         const member =
             (await client.utils.getMember(message.guild, args[0])) ||
             (message.reference ? (await message.fetchReference()).member : message.member);

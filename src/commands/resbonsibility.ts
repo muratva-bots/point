@@ -3,13 +3,9 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 
 const Command: Point.ICommand = {
     usages: ['sorumluluk'],
-    // checkPermission: ({ client, message }) => {
-    //     const ownerID =
-    //         client.application.owner instanceof Team
-    //             ? (client.application.owner as Team).ownerId
-    //             : client.application.owner.id;
-    //     return ownerID === message.author.id;
-    // },
+    checkPermission: ({ client, message }) => {
+        return client.config.BOT_OWNERS.includes(message.author.id);
+    },
     execute: async ({ client, message, guildData }) => {
         const tasks = (guildData.tasks || []).filter((t) => t.isGeneral || message.guild.roles.cache.has(t.role));
         if (!tasks.length) {

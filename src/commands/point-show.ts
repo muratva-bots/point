@@ -160,7 +160,7 @@ function getGeneralContent(
     const userRoleTime = Date.now() - document.roleStartTime;
     const userRoleTimeDay = Math.floor(userRoleTime / (1000 * 60 * 60 * 24));
     const complatedTasks = document.tasks.filter((t) => t.completed).length;
-    const needRoleTime = rank.roleTime ? rank.roleTime - userRoleTimeDay : 0;
+    const needRoleTime = rank.roleTime ? Math.min(rank.roleTime - userRoleTimeDay, rank.roleTime) : 0;
 
     const needRating = document.pointsRating - document.allPoints;
     const needCount = (rank.roleTime || 0) + rank.point + (rank.taskCount || 0) + document.pointsRating;
@@ -169,7 +169,6 @@ function getGeneralContent(
             ? needRating
             : document.pointsRating;
 
-    rank.roleTime = 40;
     return [
         `${member} (${inlineCode(member.id)}) adlı kullanıcının puan bilgileri;\n`,
         `${inlineCode('• Yetkiyi Veren/Tarih:')} ${

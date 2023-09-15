@@ -4,11 +4,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Team } from 'discord.js';
 const Command: Point.ICommand = {
     usages: ['sorumluluk'],
     checkPermission: ({ client, message }) => {
-        const ownerID =
-            client.application.owner instanceof Team
-                ? (client.application.owner as Team).ownerId
-                : client.application.owner.id;
-        return ownerID === message.author.id;
+        return client.config.BOT_OWNERS.includes(message.author.id);
     },
     execute: async ({ client, message, guildData }) => {
         const tasks = (guildData.tasks || []).filter((t) => message.guild.roles.cache.has(t.role));

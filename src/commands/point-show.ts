@@ -9,7 +9,6 @@ import {
     ComponentType,
     EmbedBuilder,
     GuildMember,
-    VoiceChannel,
     bold,
     codeBlock,
     inlineCode,
@@ -18,10 +17,10 @@ import {
 } from 'discord.js';
 
 const Command: Point.ICommand = {
-    usages: ['ystat', 'point', 'points', 'puan', 'task', 'tasks', 'görev', 'görevler'],
-    checkPermission: ({ message, guildData }) => {
+    usages: ['ystat', 'point', 'points', 'puan', 'task', 'tasks', 'görev', 'görevler', 'p'],
+    checkPermission: ({ client, message, guildData }) => {
         const minStaffRole = message.guild.roles.cache.get(guildData.minStaffRole);
-        return minStaffRole && message.member.roles.highest.position >= minStaffRole.position;
+        return (minStaffRole && message.member.roles.highest.position >= minStaffRole.position) || client.utils.checkStaff(message.member, guildData);
     },
     execute: async ({ client, message, args, guildData }) => {
         const member =
@@ -39,9 +38,9 @@ const Command: Point.ICommand = {
             return;
         }
 
-        const rankIndex = (guildData.ranks || []).findIndex((r) => member.roles.cache.has(r.role));
+        const rankIndex = (guildData.ranks || []).sort((a,b) => a.point - b.point).findIndex((r) => member.roles.cache.has(r.role));
         if (rankIndex === (guildData.ranks || []).length - 1) {
-            client.utils.sendTimedMessage(message, 'Yükselecek yetkin bulunmuyor, yönetime alınmayı bekle.');
+            client.utils.sendTimedMessage(message, 'Yükselecek yetki bulunmuyor, yönetime alınmayı beklemeli.');
             return;
         }
 
@@ -119,7 +118,11 @@ const Command: Point.ICommand = {
                                       tasksMapped.join('\n'),
                                       getStatus(document, rank, complatedTasks, needRoleTime),
                                   ].join('\n')
-                                : 'Görev verin bulunmuyor. Görev alarak görevlerine bakabilirsin.',
+                                : (
+                                    document.pointsRating > document.totalPoints ? 
+                                    "Değerlendirme puanını geçmeden görev alamazsın." : 
+                                    'Görev verin bulunmuyor. Görev alarak görevlerine bakabilirsin.'
+                                ),
                         ),
                     ],
                     components: [buttonRow],

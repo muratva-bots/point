@@ -8,7 +8,7 @@ async function messageStatHandler(client: Client, message: Message, guildData: P
 
     let point = message.member.roles.cache.some((r) => (guildData.chatStaffs || []).includes(r.id))
         ? guildData.messageStaffPoint
-        : guildData.messagePoint;
+        : guildData.messagePoint;;
 
     if (Date.now() - guildData.eventFinishTimestamp >= 0) point *= 2;
 

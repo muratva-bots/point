@@ -27,7 +27,7 @@ import { TaskFlags } from '@/enums';
 export async function taskHandler(client: Client, message: Message, guildData: PointClass, question: Message) {
     await question.edit({
         content: '',
-        components: createRow(message, guildData.tasks),
+        components: createRow(client, message, guildData.tasks),
     });
 
     const filter = (i: Interaction) => i.user.id === message.author.id;
@@ -127,6 +127,7 @@ export async function taskHandler(client: Client, message: Message, guildData: P
                         });
                         if (channelCollected)
                             createModal(
+                                client,
                                 i,
                                 channelCollected,
                                 roleCollected as any,
@@ -136,7 +137,7 @@ export async function taskHandler(client: Client, message: Message, guildData: P
                                 channelCollected.values[0],
                             );
                         else i.deleteReply();
-                    } else createModal(i, typeCollected, roleCollected as any, typeCollected, guildData, question);
+                    } else createModal(client, i, typeCollected, roleCollected as any, typeCollected, guildData, question);
                 } else i.deleteReply();
             } else i.deleteReply();
         }
@@ -158,7 +159,7 @@ export async function taskHandler(client: Client, message: Message, guildData: P
             });
 
             question.edit({
-                components: createRow(message, guildData.tasks),
+                components: createRow(client, message, guildData.tasks),
             });
         }
     });
@@ -181,7 +182,7 @@ export async function taskHandler(client: Client, message: Message, guildData: P
     });
 }
 
-function createRow(message: Message, responsibilityChannels: IGuildTask[]) {
+function createRow(client: Client, message: Message, responsibilityChannels: IGuildTask[]) {
     const datas = (responsibilityChannels || []).filter((r) => message.guild.roles.cache.has(r.role));
     return [
         new ActionRowBuilder<StringSelectMenuBuilder>({
@@ -195,7 +196,7 @@ function createRow(message: Message, responsibilityChannels: IGuildTask[]) {
                         ? datas.map((r) => ({
                               label: message.guild.roles.cache.get(r.role).name,
                               value: r.role,
-                              description: `${r.count}`,
+                              description: r.type === TaskFlags.Voice ? client.utils.numberToString(r.count) : `${r.count}`,
                           }))
                         : [{ label: 'test', value: 'a' }],
                 }),
@@ -228,6 +229,7 @@ const types = {
 };
 
 async function createModal(
+    client: Client,
     mainInteraction: ButtonInteraction,
     interaction: ChannelSelectMenuInteraction | StringSelectMenuInteraction,
     roleCollected: RoleSelectMenuInteraction | ButtonInteraction,
@@ -315,7 +317,7 @@ async function createModal(
         );
 
         question.edit({
-            components: createRow(question, guildData.tasks),
+            components: createRow(client, question, guildData.tasks),
         });
 
         mainInteraction.editReply({

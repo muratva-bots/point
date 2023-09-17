@@ -12,13 +12,19 @@ import {
 
 const Command: Point.ICommand = {
     usages: ['göreval', 'gorev-al', 'görev-al', 'algörev', 'al-görev', 'taskal', 'task-al', 'al-task', 'altask'],
-    checkPermission: ({ message, guildData }) => {
+    checkPermission: ({ client, message, guildData }) => {
         const minStaffRole = message.guild.roles.cache.get(guildData.minStaffRole);
-        return minStaffRole && message.member.roles.highest.position >= minStaffRole.position;
+        return (minStaffRole && message.member.roles.highest.position >= minStaffRole.position) || client.utils.checkStaff(message.member, guildData);
     },
     execute: async ({ client, message, guildData }) => {
         if (!client.utils.checkStaff(message.member, guildData)) {
             client.utils.sendTimedMessage(message, 'Yönetim görev alamaz.');
+            return;
+        }
+
+        const document = await StaffModel.findOne({ id: message.author.id, guild: message.guildId });
+        if (!document || document.pointsRating > document.totalPoints) {
+            client.utils.sendTimedMessage(message, 'Değerlendirme puanını geçmeden görev alamazsın.');
             return;
         }
 
@@ -105,8 +111,6 @@ const Command: Point.ICommand = {
                     components: [],
                 });
 
-                const query = { id: message.author.id, guild: message.guildId };
-                const document = (await StaffModel.findOne(query)) || new StaffModel(query);
                 document.tasks = [];
                 currentTasks.forEach((t) =>
                     document.tasks.push({

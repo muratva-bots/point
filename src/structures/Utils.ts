@@ -201,7 +201,7 @@ export class Utils {
         if (document.pointsRating > document.allPoints) return;
 
         const task = document.tasks.find(
-            (t) => t.type === type && (t.channel === channel.id || t.channel === channel.parentId),
+            (t) => type !== TaskFlags.Message ? (t.type === type && [channel.parentId, channel.id].includes(t.channel)) : t.type === type,
         );
         if (!task || task.completed) return;
 
@@ -306,12 +306,14 @@ export class Utils {
         return { hasLimit: false };
     }
 
-    numberToString(seconds: number) {
-        seconds = seconds / 1000;
-        var d = Math.floor(seconds / (3600 * 24));
-        var h = Math.floor((seconds % (3600 * 24)) / 3600);
-        var m = Math.floor((seconds % 3600) / 60);
-        var s = Math.floor(seconds % 60);
+    numberToString(ms: number) {
+        if (ms === 0) return "0 saniye";
+
+        ms = ms / 1000;
+        var d = Math.floor(ms / (3600 * 24));
+        var h = Math.floor((ms % (3600 * 24)) / 3600);
+        var m = Math.floor((ms % 3600) / 60);
+        var s = Math.floor(ms % 60);
 
         var dDisplay = d > 0 ? d + ' gün ' : '';
         var hDisplay = h > 0 ? h + ' saat ' : '';

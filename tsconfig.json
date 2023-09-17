@@ -19,5 +19,5 @@
             "@/assets": ["src/assets/index.ts"]
         }
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*", "crons"]
 }

@@ -3,6 +3,6 @@
     "GUILD_ID": "1130942265020383373",
     "BOT_OWNERS": ["331846231514939392", "470974660264067072"],
     "PREFIXES": ["!", "."],
-    "MONGO_URL": "mongodb+srv://can:Can_Galatasaray_1905@cluster0.b8iccgb.mongodb.net/tsguard?retryWrites=true&w=majority",
+    "MONGO_URL": "mongodb+srv://muratvastark:deneme1234@database.sxbrxge.mongodb.net/test",
     "STATUS": "💙"
 }

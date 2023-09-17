@@ -117,8 +117,9 @@ const Command: Point.ICommand = {
                     return;
                 }
 
-                if (!member.roles.cache.has(sortedRanks[currentIndex].role)) member.roles.remove(sortedRanks[currentIndex].role);
-                if (!member.roles.cache.has(newRank.role)) member.roles.add([newRank.role]);
+                console.log(sortedRanks[currentIndex].role)
+                if (member.roles.cache.has(sortedRanks[currentIndex].role)) await member.roles.remove(sortedRanks[currentIndex].role);
+                if (!member.roles.cache.has(newRank.role)) await member.roles.add(newRank.role);
 
                 await StaffModel.updateOne(
                     { id: member.id, guild: message.guildId },

@@ -117,7 +117,6 @@ const Command: Point.ICommand = {
                     return;
                 }
 
-                console.log(sortedRanks[currentIndex].role)
                 if (member.roles.cache.has(sortedRanks[currentIndex].role)) await member.roles.remove(sortedRanks[currentIndex].role);
                 if (!member.roles.cache.has(newRank.role)) await member.roles.add(newRank.role);
 

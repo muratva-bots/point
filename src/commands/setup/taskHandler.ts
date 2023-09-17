@@ -183,7 +183,7 @@ export async function taskHandler(client: Client, message: Message, guildData: P
 }
 
 function createRow(client: Client, message: Message, responsibilityChannels: IGuildTask[]) {
-    const datas = (responsibilityChannels || []).filter((r) => message.guild.roles.cache.has(r.role));
+    const datas = (responsibilityChannels || []).filter((r) => message.guild.roles.cache.has(r.role) && message.guild.channels.cache.get(r.channel));
     return [
         new ActionRowBuilder<StringSelectMenuBuilder>({
             components: [
@@ -196,7 +196,7 @@ function createRow(client: Client, message: Message, responsibilityChannels: IGu
                         ? datas.map((r) => ({
                               label: message.guild.roles.cache.get(r.role).name,
                               value: r.role,
-                              description: r.type === TaskFlags.Voice ? client.utils.numberToString(r.count) : `${r.count}`,
+                              description: r.type === TaskFlags.Voice ? client.utils.numberToString(r.count) : `${r.count} ` + (r.channel ? message.guild.channels.cache.get(r.channel)?.name : ""),
                           }))
                         : [{ label: 'test', value: 'a' }],
                 }),

@@ -47,7 +47,7 @@ const Command: Point.ICommand = {
         if (
             rank.taskCount >
             guildData.tasks.filter(
-                (t) => t.isGeneral || message.member.roles.cache.has(t.role),
+                (t) => t.isGeneral || (message.member.roles.cache.has(t.role) && message.guild.channels.cache.has(t.channel)),
             ).length
         ) {
             const responsibilityChannel = message.guild.channels.cache.get(guildData.responsibilityChannel);
@@ -160,7 +160,7 @@ const Command: Point.ICommand = {
 export default Command;
 
 function createNewTasks(message: Message, guildData: PointClass, rank: IRank) {
-    let usableTasks = guildData.tasks.filter((t) => t.isGeneral || message.member.roles.cache.has(t.role));
+    let usableTasks = guildData.tasks.filter((t) => t.isGeneral || (message.member.roles.cache.has(t.role) && message.guild.channels.cache.has(t.channel)));
     const userTasks = [];
     for (let i = 0; rank.taskCount > i; i++) {
         const task = usableTasks[Math.floor(Math.random() * usableTasks.length)];

@@ -198,7 +198,7 @@ export class Utils {
     }
 
     async checkTask(document: Document<unknown, any, StaffClass> & StaffClass, channel: GuildChannel, value: number, type: TaskFlags) {
-        if (document.pointsRating > document.allPoints) return;
+        if (document.pointsRating > document.totalPoints) return;
 
         const task = document.tasks.find(
             (t) => type !== TaskFlags.Message ? (t.type === type && [channel.parentId, channel.id].includes(t.channel)) : t.type === type,

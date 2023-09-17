@@ -16,6 +16,8 @@ export async function addVoiceStat(
     );
     if (!currentRank) return;
 
+    console.log("umarım bir gün")
+
     const minutes = Math.max(Math.floor(value / (1000 * 60)), 1);
 
     let point = minutes * guildData.sleepPoint;
@@ -45,5 +47,6 @@ export async function addVoiceStat(
     if (document.sleepPoints >= currentRank.maxSleep) document.sleepPoints = currentRank.maxSleep;
     await client.utils.checkTask(document, channel, value, TaskFlags.Voice);
     await client.utils.checkRank(member, document, guildData);
+    console.log("hatırlarsın beni")
     document.save();
 }
